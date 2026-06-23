@@ -268,11 +268,16 @@ Screen coords → canvas pixels via `getBoundingClientRect()` scale factor.
 // On place
 score += tileCount * 10
 
-// On clear (evaluateBoard)
-comboPoints = totalLines * 150 * totalLines
+// On clear (evaluateBoard) — includes streak multiplier
+streakMult = min(2, 1 + 0.25 * (comboStreak - 1))  // after incrementing streak
+comboPoints = round(totalLines * 150 * totalLines * streakMult)
 score += comboPoints
 clearedLines += totalLines
 ```
+
+- **Streak:** `comboStreak` increments when you clear lines; resets to 0 on a placement with no clear. Shown in `#streak-val`.
+- **Piece bag:** Shuffled deck of all 14 shapes (each once per cycle); fairer than uniform random.
+- **Next wave:** `nextWave[3]` previews the batch after the current dock; promoted when all dock slots are used.
 
 High score written to `localStorage` when `score > highscore` after a clear.
 
@@ -286,6 +291,7 @@ High score written to `localStorage` when `score > highscore` after a clear.
 |----|------|
 | `canvas-board` | Main 10×10 board |
 | `dock-canvas-0` … `dock-canvas-2` | Dock previews |
+| `next-canvas-0` … `next-canvas-2` | Next wave previews |
 
 ### Stats & HUD
 
@@ -293,6 +299,7 @@ High score written to `localStorage` when `score > highscore` after a clear.
 |----|------|
 | `score-val` | Current score |
 | `lines-val` | Cleared line count |
+| `streak-val` | Combo streak counter |
 | `highscore-val` | Best score |
 | `zen-panel` | Undo panel (disabled in Arcade) |
 | `toast-banner` | Combo/heal toast |

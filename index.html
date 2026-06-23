@@ -105,6 +105,10 @@
                     <div class="text-[9px] sm:text-[10px] text-slate-400 tracking-wider">CLEARED</div>
                     <div id="lines-val" class="text-base sm:text-xl md:text-2xl font-bold text-neonMagenta">00</div>
                 </div>
+                <div class="flex-1 border-l md:border-l-0 md:border-t border-slate-800 pl-2 sm:pl-3 md:pl-0 md:pt-2">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 tracking-wider">STREAK</div>
+                    <div id="streak-val" class="text-base sm:text-xl md:text-2xl font-bold text-neonPurple">0</div>
+                </div>
                 <div class="hidden md:block border-t border-slate-800 pt-2">
                     <div class="text-[9px] text-slate-500 tracking-wider">BEST RECORD</div>
                     <div id="highscore-val" class="text-xs sm:text-sm text-slate-300">000000</div>
@@ -191,6 +195,20 @@
                         </button>
                     </div>
                 </div>
+                <div class="mt-2 pt-2 border-t border-slate-800">
+                    <div class="text-center text-[8px] sm:text-[9px] font-cyber text-slate-600 uppercase tracking-widest mb-1.5">Next Wave</div>
+                    <div id="next-wave-slots" class="grid grid-cols-3 gap-2 sm:gap-3">
+                        <div class="h-10 sm:h-12 bg-cyberBg/40 border border-slate-800/60 rounded-lg flex items-center justify-center">
+                            <canvas id="next-canvas-0" width="40" height="40" class="max-w-[40px] max-h-[40px]"></canvas>
+                        </div>
+                        <div class="h-10 sm:h-12 bg-cyberBg/40 border border-slate-800/60 rounded-lg flex items-center justify-center">
+                            <canvas id="next-canvas-1" width="40" height="40" class="max-w-[40px] max-h-[40px]"></canvas>
+                        </div>
+                        <div class="h-10 sm:h-12 bg-cyberBg/40 border border-slate-800/60 rounded-lg flex items-center justify-center">
+                            <canvas id="next-canvas-2" width="40" height="40" class="max-w-[40px] max-h-[40px]"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -232,6 +250,8 @@
                         <li>**Rotation (Option 1):** Click the small 🔄 icon on top of the dock block to rotate.</li>
                         <li>**Rotation (Option 2):** Tap the block to rotate it.</li>
                         <li>**Rotation (Option 3):** Press **R**, **Space (空白鍵)**, or **Up Arrow** while dragging.</li>
+                        <li>**Next Wave:** Preview the next 3 shapes below the dock before you use up the current batch.</li>
+                        <li>**Streak Bonus:** Clear lines on consecutive turns to multiply combo points (up to ×2).</li>
                     </ul>
                 </div>
 
@@ -433,6 +453,7 @@
             blockSize = side / gridCols;
             
             drawDockCanvases();
+            drawNextWavePreview();
         }
         window.addEventListener('resize', resizeCanvas);
 
@@ -468,6 +489,9 @@
         // States variables
         let grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
         let dockCandidates = [null, null, null]; 
+        let nextWave = [null, null, null];
+        let pieceBag = [];
+        let comboStreak = 0;
         
         let score = 0;
         let clearedLines = 0;
@@ -523,17 +547,54 @@
             }
         }
 
-        // Generate and refill Candidate Dock Shapes
-        function getRandomPiece() {
-            const temp = shapeTemplates[Math.floor(Math.random() * shapeTemplates.length)];
-            return JSON.parse(JSON.stringify(temp));
+        // Fair piece bag — each shape once per cycle (3x3 appears at most once per bag)
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
         }
 
-        function refillDock() {
-            for (let i = 0; i < 3; i++) {
-                dockCandidates[i] = getRandomPiece();
+        function refillPieceBag() {
+            pieceBag = [];
+            for (let i = 0; i < shapeTemplates.length; i++) {
+                pieceBag.push(i);
             }
+            shuffleArray(pieceBag);
+        }
+
+        function nextPieceFromBag() {
+            if (pieceBag.length === 0) refillPieceBag();
+            const idx = pieceBag.pop();
+            return JSON.parse(JSON.stringify(shapeTemplates[idx]));
+        }
+
+        function clonePiece(piece) {
+            return JSON.parse(JSON.stringify(piece));
+        }
+
+        function fillWaveFromBag(wave) {
+            for (let i = 0; i < 3; i++) {
+                wave[i] = nextPieceFromBag();
+            }
+        }
+
+        function initDockAndNextWave() {
+            pieceBag = [];
+            for (let i = 0; i < 3; i++) {
+                dockCandidates[i] = nextPieceFromBag();
+            }
+            fillWaveFromBag(nextWave);
             drawDockCanvases();
+            drawNextWavePreview();
+        }
+
+        function promoteNextWave() {
+            dockCandidates = nextWave.map(p => clonePiece(p));
+            fillWaveFromBag(nextWave);
+            drawDockCanvases();
+            drawNextWavePreview();
         }
 
         function checkDockEmpty() {
@@ -568,8 +629,11 @@
             const snap = {
                 grid: JSON.stringify(grid),
                 dockCandidates: JSON.stringify(dockCandidates),
+                nextWave: JSON.stringify(nextWave),
+                pieceBag: JSON.stringify(pieceBag),
                 score: score,
-                clearedLines: clearedLines
+                clearedLines: clearedLines,
+                comboStreak: comboStreak
             };
             moveHistory.push(snap);
             if (moveHistory.length > 20) moveHistory.shift();
@@ -582,11 +646,15 @@
             
             grid = JSON.parse(snap.grid);
             dockCandidates = JSON.parse(snap.dockCandidates);
+            nextWave = snap.nextWave ? JSON.parse(snap.nextWave) : [null, null, null];
+            pieceBag = snap.pieceBag ? JSON.parse(snap.pieceBag) : [];
             score = snap.score;
             clearedLines = snap.clearedLines;
+            comboStreak = snap.comboStreak || 0;
             
             updateStatsUI();
             drawDockCanvases();
+            drawNextWavePreview();
             updateUndoButtonState();
             SFX.playRotate();
         }
@@ -686,13 +754,16 @@
                     }
                 });
 
-                const comboPoints = totalLines * 150 * totalLines;
+                comboStreak++;
+                const streakMult = Math.min(2, 1 + 0.25 * (comboStreak - 1));
+                const comboPoints = Math.round(totalLines * 150 * totalLines * streakMult);
                 score += comboPoints;
                 clearedLines += totalLines;
                 screenShakeTime = 12;
 
                 SFX.playClear(totalLines);
-                showToast("COMBO CLEAR!", `+${comboPoints} POINTS`);
+                const toastTitle = comboStreak >= 2 ? `${comboStreak}x STREAK!` : "COMBO CLEAR!";
+                showToast(toastTitle, `+${comboPoints} POINTS`);
 
                 if (score > highscore) {
                     highscore = score;
@@ -700,6 +771,7 @@
                 }
                 updateStatsUI();
             }
+            return totalLines;
         }
 
         function triggerParticlesAtCell(c, r, color) {
@@ -938,43 +1010,60 @@
             requestAnimationFrame(draw);
         }
 
+        function drawPieceOnCanvas(c, piece, blockPixelSize) {
+            const sCtx = c.getContext('2d');
+            sCtx.clearRect(0, 0, c.width, c.height);
+            if (!piece) return;
+
+            const matrix = piece.matrix;
+            const mH = matrix.length;
+            const mW = matrix[0].length;
+            const startX = (c.width - mW * blockPixelSize) / 2;
+            const startY = (c.height - mH * blockPixelSize) / 2;
+
+            sCtx.save();
+            sCtx.shadowBlur = 6;
+            sCtx.shadowColor = blockColors[piece.color];
+
+            for (let r = 0; r < mH; r++) {
+                for (let col = 0; col < mW; col++) {
+                    if (matrix[r][col] !== 0) {
+                        const realColor = blockColors[piece.color] || '#fff';
+                        const grad = sCtx.createLinearGradient(
+                            startX + col * blockPixelSize, startY + r * blockPixelSize,
+                            startX + (col + 1) * blockPixelSize, startY + (r + 1) * blockPixelSize
+                        );
+                        grad.addColorStop(0, realColor);
+                        grad.addColorStop(1, '#000000');
+                        sCtx.fillStyle = grad;
+                        sCtx.fillRect(
+                            startX + col * blockPixelSize + 1,
+                            startY + r * blockPixelSize + 1,
+                            blockPixelSize - 2,
+                            blockPixelSize - 2
+                        );
+                    }
+                }
+            }
+            sCtx.restore();
+        }
+
         // Render current shapes in dockslots
         function drawDockCanvases() {
+            const size = window.innerWidth < 640 ? 12 : 16;
             for (let i = 0; i < 3; i++) {
                 const c = document.getElementById(`dock-canvas-${i}`);
                 if (!c) continue;
-                const sCtx = c.getContext('2d');
-                sCtx.clearRect(0, 0, c.width, c.height);
-                
-                const piece = dockCandidates[i];
-                if (!piece) continue;
+                drawPieceOnCanvas(c, dockCandidates[i], size);
+            }
+        }
 
-                const matrix = piece.matrix;
-                const mH = matrix.length;
-                const mW = matrix[0].length;
-                
-                // Scale rendering inside the dock canvas space proportionally
-                const size = window.innerWidth < 640 ? 12 : 16; 
-                const startX = (c.width - mW * size) / 2;
-                const startY = (c.height - mH * size) / 2;
-
-                sCtx.save();
-                sCtx.shadowBlur = 6;
-                sCtx.shadowColor = blockColors[piece.color];
-
-                for (let r = 0; r < mH; r++) {
-                    for (let c = 0; c < mW; c++) {
-                        if (matrix[r][c] !== 0) {
-                            const realColor = blockColors[piece.color] || '#fff';
-                            const grad = sCtx.createLinearGradient(startX + c*size, startY + r*size, startX + (c+1)*size, startY + (r+1)*size);
-                            grad.addColorStop(0, realColor);
-                            grad.addColorStop(1, '#000000');
-                            sCtx.fillStyle = grad;
-                            sCtx.fillRect(startX + c * size + 1, startY + r * size + 1, size - 2, size - 2);
-                        }
-                    }
-                }
-                sCtx.restore();
+        function drawNextWavePreview() {
+            const size = window.innerWidth < 640 ? 7 : 9;
+            for (let i = 0; i < 3; i++) {
+                const c = document.getElementById(`next-canvas-${i}`);
+                if (!c) continue;
+                drawPieceOnCanvas(c, nextWave[i], size);
             }
         }
 
@@ -1069,11 +1158,15 @@
                     placePieceAt(matrix, gCol, gRow, piece.color);
                     dockCandidates[idx] = null; // consume piece from slot
 
-                    evaluateBoard();
+                    const linesCleared = evaluateBoard();
+                    if (linesCleared === 0) {
+                        comboStreak = 0;
+                        updateStatsUI();
+                    }
 
-                    // REFRESH: Refill immediately once ALL three slots are emptied
+                    // REFRESH: Promote pre-viewed wave once ALL three slots are emptied
                     if (checkDockEmpty()) {
-                        refillDock();
+                        promoteNextWave();
                     }
 
                     // Check if moves are possible with current shapes remaining
@@ -1094,6 +1187,7 @@
             dragState.pointerId = -1;
             
             drawDockCanvases();
+            drawNextWavePreview();
             updateUndoButtonState();
         });
 
@@ -1106,6 +1200,7 @@
             dragState.slotIndex = -1;
             dragState.pointerId = -1;
             drawDockCanvases();
+            drawNextWavePreview();
         });
 
         // --- TOAST AND DATA GRAPHIC HANDLERS ---
@@ -1124,6 +1219,7 @@
         function updateStatsUI() {
             document.getElementById('score-val').innerText = score.toString().padStart(6, '0');
             document.getElementById('lines-val').innerText = clearedLines.toString().padStart(2, '0');
+            document.getElementById('streak-val').innerText = comboStreak.toString();
             document.getElementById('highscore-val').innerText = highscore.toString().padStart(6, '0');
         }
 
@@ -1144,6 +1240,7 @@
             grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
             score = 0;
             clearedLines = 0;
+            comboStreak = 0;
             isGameOver = false;
             isPaused = false;
             moveHistory = [];
@@ -1169,7 +1266,7 @@
             }
 
             updateStatsUI();
-            refillDock();
+            initDockAndNextWave();
             updateUndoButtonState();
 
             document.getElementById('modal-overlay').classList.add('hidden');
