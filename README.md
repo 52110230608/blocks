@@ -2,7 +2,13 @@
 
 A single-file browser game (`index.html`, ~1,270 lines). Vanilla HTML/CSS/JS, Canvas 2D, Tailwind CDN, Lucide icons, Web Audio API synth. No build step.
 
-## Quick start
+## Play online
+
+**https://52110230608.github.io/blocks/**
+
+Hosted on GitHub Pages from `index.html` on the `main` branch. First deploy may take 1–2 minutes after push.
+
+## Quick start (local)
 
 ```bash
 cd blocks
