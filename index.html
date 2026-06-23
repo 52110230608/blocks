@@ -303,6 +303,15 @@
                 <button id="btn-modal-zen-action" class="w-full mt-2 py-2.5 sm:py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-cyber text-xs sm:text-sm tracking-wider rounded-xl transition-all border border-slate-700">
                     PLAY ZEN MODE
                 </button>
+                <div id="versus-time-picker" class="w-full mt-2">
+                    <div class="text-[9px] font-cyber text-slate-500 tracking-widest uppercase mb-1.5">Battle Time</div>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button type="button" class="versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-neonCyan transition-all" data-seconds="60">1:00</button>
+                        <button type="button" class="versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-neonCyan bg-neonCyan/20 text-neonCyan font-bold transition-all" data-seconds="120">2:00</button>
+                        <button type="button" class="versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-neonCyan transition-all" data-seconds="180">3:00</button>
+                        <button type="button" class="versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-neonCyan transition-all" data-seconds="300">5:00</button>
+                    </div>
+                </div>
                 <button id="btn-modal-versus-action" class="w-full mt-2 py-2.5 sm:py-3 bg-gradient-to-r from-neonMagenta to-neonCyan hover:opacity-90 text-cyberBg font-cyber font-black text-xs sm:text-sm tracking-wider rounded-xl transition-all">
                     2 PLAYER BATTLE
                 </button>
@@ -340,7 +349,7 @@
                     <span class="text-white font-bold block mb-1">🕹️ MODES</span>
                     <p class="text-slate-400 mt-1"><strong class="text-white">Arcade Mode:</strong> Pure tactical challenge. Score high before locking up.</p>
                     <p class="text-slate-400 mt-2"><strong class="text-white">Zen Mode:</strong> Relaxed play. Enjoy **UNDO** actions. If you block yourself, a Zen Healing clears a portion of the board to let you keep going!</p>
-                    <p class="text-slate-400 mt-2"><strong class="text-white">2 Player Battle:</strong> Side-by-side boards with a <strong class="text-white">2-minute timer</strong>. You lose instantly if your grid fills up or none of your dock pieces can fit. Highest score wins when time runs out!</p>
+                    <p class="text-slate-400 mt-2"><strong class="text-white">2 Player Battle:</strong> Side-by-side boards — choose <strong class="text-white">1, 2, 3, or 5 minutes</strong> before starting. You lose instantly if your grid fills up or none of your dock pieces can fit. Highest score wins when time runs out!</p>
                 </div>
             </div>
         </div>
@@ -637,8 +646,10 @@
         let isPaused = false;
         let pendingModeSelection = null;
         let versusFinished = false;
-        const VERSUS_DURATION_SEC = 120;
-        let versusTimeLeft = VERSUS_DURATION_SEC;
+        const VERSUS_TIME_OPTIONS = [60, 120, 180, 300];
+        let versusDurationSec = parseInt(localStorage.getItem('block_puzzle_versus_time') || '120', 10);
+        if (!VERSUS_TIME_OPTIONS.includes(versusDurationSec)) versusDurationSec = 120;
+        let versusTimeLeft = versusDurationSec;
         let versusTimerId = null;
         let screenShakeTime = 0;
         let moveHistory = [];
@@ -950,6 +961,23 @@
             return p.grid.every(row => row.every(cell => cell !== null));
         }
 
+        function setVersusDuration(sec) {
+            if (!VERSUS_TIME_OPTIONS.includes(sec)) return;
+            versusDurationSec = sec;
+            localStorage.setItem('block_puzzle_versus_time', sec.toString());
+            updateVersusTimePickerUI();
+        }
+
+        function updateVersusTimePickerUI() {
+            document.querySelectorAll('.versus-time-btn').forEach(btn => {
+                const sec = parseInt(btn.dataset.seconds, 10);
+                const active = sec === versusDurationSec;
+                btn.className = active
+                    ? 'versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-neonCyan bg-neonCyan/20 text-neonCyan font-bold transition-all'
+                    : 'versus-time-btn py-1.5 text-[10px] sm:text-xs font-cyber rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-neonCyan transition-all';
+            });
+        }
+
         function formatVersusTime(sec) {
             const m = Math.floor(sec / 60);
             const s = sec % 60;
@@ -966,7 +994,7 @@
 
         function startVersusTimer() {
             stopVersusTimer();
-            versusTimeLeft = VERSUS_DURATION_SEC;
+            versusTimeLeft = versusDurationSec;
             updateVersusTimerUI();
             versusTimerId = setInterval(() => {
                 if (isPaused || versusFinished) return;
@@ -1664,6 +1692,12 @@
             startNewGame('versus');
         });
 
+        document.querySelectorAll('.versus-time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setVersusDuration(parseInt(btn.dataset.seconds, 10));
+            });
+        });
+
         document.getElementById('mode-arcade').addEventListener('click', () => {
             if (gameMode !== 'arcade') {
                 showRestartConfirmation('arcade');
@@ -1756,6 +1790,7 @@
 
         // Initialize icons, dimensions, and loops
         lucide.createIcons();
+        updateVersusTimePickerUI();
         rebindPlayers();
         resizeCanvas();
         requestAnimationFrame(draw);
