@@ -248,8 +248,12 @@
             </div>
         </div>
 
-        <div class="flex flex-col items-center justify-center shrink-0 px-0.5">
+        <div class="flex flex-col items-center justify-center shrink-0 px-0.5 gap-1.5">
             <span class="font-cyber font-black text-lg sm:text-2xl text-transparent bg-clip-text bg-gradient-to-b from-neonCyan to-neonMagenta">VS</span>
+            <div class="text-center bg-cyberCard/80 border border-slate-800 rounded-lg px-2 py-1">
+                <div class="text-[7px] sm:text-[8px] font-cyber text-slate-500 tracking-widest uppercase">Time</div>
+                <div id="versus-timer-val" class="font-cyber text-sm sm:text-lg font-bold text-neonCyan tabular-nums">2:00</div>
+            </div>
         </div>
 
         <!-- Player 2 -->
@@ -336,7 +340,7 @@
                     <span class="text-white font-bold block mb-1">🕹️ MODES</span>
                     <p class="text-slate-400 mt-1"><strong class="text-white">Arcade Mode:</strong> Pure tactical challenge. Score high before locking up.</p>
                     <p class="text-slate-400 mt-2"><strong class="text-white">Zen Mode:</strong> Relaxed play. Enjoy **UNDO** actions. If you block yourself, a Zen Healing clears a portion of the board to let you keep going!</p>
-                    <p class="text-slate-400 mt-2"><strong class="text-white">2 Player Battle:</strong> Side-by-side boards. Each player picks from their own dock. When you can't place any pieces, you're locked — the other keeps playing. Highest score wins!</p>
+                    <p class="text-slate-400 mt-2"><strong class="text-white">2 Player Battle:</strong> Side-by-side boards with a <strong class="text-white">2-minute timer</strong>. You lose instantly if your grid fills up or none of your dock pieces can fit. Highest score wins when time runs out!</p>
                 </div>
             </div>
         </div>
@@ -633,6 +637,9 @@
         let isPaused = false;
         let pendingModeSelection = null;
         let versusFinished = false;
+        const VERSUS_DURATION_SEC = 120;
+        let versusTimeLeft = VERSUS_DURATION_SEC;
+        let versusTimerId = null;
         let screenShakeTime = 0;
         let moveHistory = [];
 
@@ -939,6 +946,63 @@
             return false;
         }
 
+        function isGridFull(p) {
+            return p.grid.every(row => row.every(cell => cell !== null));
+        }
+
+        function formatVersusTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function updateVersusTimerUI() {
+            const timerEl = document.getElementById('versus-timer-val');
+            if (!timerEl) return;
+            timerEl.innerText = formatVersusTime(versusTimeLeft);
+            timerEl.classList.toggle('text-neonMagenta', versusTimeLeft <= 10);
+            timerEl.classList.toggle('text-neonCyan', versusTimeLeft > 10);
+        }
+
+        function startVersusTimer() {
+            stopVersusTimer();
+            versusTimeLeft = VERSUS_DURATION_SEC;
+            updateVersusTimerUI();
+            versusTimerId = setInterval(() => {
+                if (isPaused || versusFinished) return;
+                versusTimeLeft--;
+                updateVersusTimerUI();
+                if (versusTimeLeft <= 0) {
+                    stopVersusTimer();
+                    triggerVersusEnd('time');
+                }
+            }, 1000);
+        }
+
+        function stopVersusTimer() {
+            if (versusTimerId) {
+                clearInterval(versusTimerId);
+                versusTimerId = null;
+            }
+        }
+
+        function versusEliminatePlayer(p, reason) {
+            if (p.isLocked || versusFinished) return;
+            p.isLocked = true;
+            const overlay = el(p, 'locked-overlay');
+            if (overlay) {
+                const label = overlay.querySelector('span');
+                const messages = { no_moves: 'NO MOVES', grid_full: 'GRID FULL' };
+                if (label) label.innerText = messages[reason] || 'ELIMINATED';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+            if (dragState.active && dragState.playerIndex === p.index) {
+                resetPickState();
+            }
+            triggerVersusEnd('elimination', 1 - p.index, reason);
+        }
+
         function lockPlayer(p) {
             if (p.isLocked) return;
             p.isLocked = true;
@@ -956,26 +1020,45 @@
         function checkVersusEnd() {
             if (gameMode !== 'versus' || versusFinished) return;
             if (players[0].isLocked && players[1].isLocked) {
-                triggerVersusEnd();
+                triggerVersusEnd('score');
             }
         }
 
-        function triggerVersusEnd() {
+        function triggerVersusEnd(endType, winnerIndex = null, reason = null) {
+            if (versusFinished) return;
             versusFinished = true;
             isGameOver = true;
+            stopVersusTimer();
             SFX.playGameOver();
             const s0 = players[0].score;
             const s1 = players[1].score;
             let title, subtitle;
-            if (s0 > s1) {
-                title = "PLAYER 1 WINS!";
-                subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
-            } else if (s1 > s0) {
-                title = "PLAYER 2 WINS!";
+
+            if (endType === 'elimination' && winnerIndex !== null) {
+                const loserNum = players[1 - winnerIndex].index + 1;
+                const reasonText = reason === 'grid_full' ? 'grid filled up' : 'no valid moves left';
+                title = winnerIndex === 0 ? "PLAYER 1 WINS!" : "PLAYER 2 WINS!";
+                subtitle = `P${loserNum} eliminated (${reasonText}). Scores — P1: <strong class="text-neonCyan">${s0}</strong> | P2: <strong class="text-neonMagenta">${s1}</strong>`;
+            } else if (endType === 'time') {
+                if (s0 > s1) {
+                    title = "TIME'S UP — PLAYER 1 WINS!";
+                } else if (s1 > s0) {
+                    title = "TIME'S UP — PLAYER 2 WINS!";
+                } else {
+                    title = "TIME'S UP — DRAW!";
+                }
                 subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
             } else {
-                title = "DRAW!";
-                subtitle = `Both players scored <strong class="text-neonCyan">${s0}</strong>`;
+                if (s0 > s1) {
+                    title = "PLAYER 1 WINS!";
+                    subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
+                } else if (s1 > s0) {
+                    title = "PLAYER 2 WINS!";
+                    subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
+                } else {
+                    title = "DRAW!";
+                    subtitle = `Both players scored <strong class="text-neonCyan">${s0}</strong>`;
+                }
             }
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-subtitle').innerHTML = subtitle;
@@ -989,7 +1072,7 @@
 
         function handleNoMovesLeft(p) {
             if (gameMode === 'versus') {
-                lockPlayer(p);
+                versusEliminatePlayer(p, 'no_moves');
                 return;
             }
             if (gameMode === 'arcade') {
@@ -1359,6 +1442,13 @@
                     updateStatsUI();
                 }
 
+                if (gameMode === 'versus' && isGridFull(p)) {
+                    resetPickState();
+                    drawDockCanvases(p);
+                    versusEliminatePlayer(p, 'grid_full');
+                    return;
+                }
+
                 if (checkDockEmpty(p)) {
                     promoteNextWave(p);
                 }
@@ -1485,6 +1575,8 @@
             if (overlay) {
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
+                const label = overlay.querySelector('span');
+                if (label) label.innerText = 'LOCKED';
             }
         }
 
@@ -1530,7 +1622,9 @@
                 zenPanel.classList.add('opacity-30', 'pointer-events-none');
                 SFX.stopZenDrone();
                 players.forEach(p => initDockAndNextWave(p));
+                startVersusTimer();
             } else {
+                stopVersusTimer();
                 singleLayout.classList.remove('hidden');
                 versusLayout.classList.add('hidden');
                 versusLayout.classList.remove('flex');
