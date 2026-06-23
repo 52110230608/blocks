@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tetris Cyber Block Puzzle</title>
+    <!-- Tailwind CSS for premium styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyberBg: '#0b0f19',
+                        cyberCard: '#151c2c',
+                        neonCyan: '#00f0ff',
+                        neonMagenta: '#ff007f',
+                        neonPurple: '#9d4edd',
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+                        'neon-magenta': '0 0 15px rgba(255, 0, 127, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons for high fidelity UI elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+        
+        .font-cyber {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .font-sans-cyber {
+            font-family: 'Rajdhani', sans-serif;
+        }
+        /* Lock screen bounce on mobile safari */
+        html, body {
+            overflow: hidden;
+            height: 100%;
+            position: fixed;
+            width: 100%;
+        }
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-cyberBg text-slate-100 font-sans-cyber h-[100dvh] flex flex-col justify-between select-none no-select">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-cyberBg/80 backdrop-blur px-4 py-2 flex items-center justify-between shrink-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-tr from-neonMagenta to-neonCyan flex items-center justify-center shadow-neon-cyan animate-pulse">
+                <span class="font-cyber font-black text-cyberBg text-sm">B</span>
+            </div>
+            <div>
+                <h1 class="font-cyber font-black text-sm sm:text-base tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-neonCyan to-neonMagenta">CYBER PUZZLE</h1>
+                <p class="text-[9px] text-slate-400 font-cyber tracking-widest uppercase">DRAG & MATCH EDITION</p>
+            </div>
+        </div>
+
+        <!-- Mode Select & Audio Options -->
+        <div class="flex items-center gap-1.5 sm:gap-3">
+            <button id="btn-audio" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="音效切換">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5" id="audio-icon"></i>
+            </button>
+            <button id="btn-pause" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="暫停遊戲">
+                <i data-lucide="pause" class="w-3.5 h-3.5" id="pause-icon"></i>
+            </button>
+            <button id="btn-restart" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonMagenta flex items-center justify-center" title="重新開始">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+            <button id="btn-help" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 flex items-center justify-center" title="幫助說明">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+            </button>
+            <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-800 shrink-0">
+                <button id="mode-arcade" class="px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md">
+                    ARCADE
+                </button>
+                <button id="mode-zen" class="px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all">
+                    ZEN
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Section (Locked Viewport Fitting) -->
+    <main class="flex-1 min-h-0 px-2 py-3 sm:p-4 flex flex-col md:flex-row items-center justify-center max-w-5xl mx-auto w-full gap-3 md:gap-6 lg:gap-8 overflow-hidden">
+        
+        <!-- Stats Panel (Left Side on Desktop, Horizontal Row on Mobile) -->
+        <div class="flex md:flex-col flex-row gap-2 md:gap-4 w-full md:w-36 shrink-0 justify-between md:justify-start">
+            <!-- Score Stats Box -->
+            <div class="bg-cyberCard border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-row md:flex-col gap-2 md:gap-4 font-cyber flex-1">
+                <div class="flex-1">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 tracking-wider">SCORE</div>
+                    <div id="score-val" class="text-base sm:text-xl md:text-2xl font-bold text-neonCyan">000000</div>
+                </div>
+                <div class="flex-1 border-l md:border-l-0 md:border-t border-slate-800 pl-2 sm:pl-3 md:pl-0 md:pt-2">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 tracking-wider">CLEARED</div>
+                    <div id="lines-val" class="text-base sm:text-xl md:text-2xl font-bold text-neonMagenta">00</div>
+                </div>
+                <div class="hidden md:block border-t border-slate-800 pt-2">
+                    <div class="text-[9px] text-slate-500 tracking-wider">BEST RECORD</div>
+                    <div id="highscore-val" class="text-xs sm:text-sm text-slate-300">000000</div>
+                </div>
+            </div>
+
+            <!-- Zen Mode Control Undo panel -->
+            <div id="zen-panel" class="bg-cyberCard border border-neonCyan/30 rounded-xl p-2 sm:p-3 flex flex-row md:flex-col items-center gap-1.5 opacity-30 pointer-events-none transition-all duration-300 flex-1 md:flex-none justify-center md:justify-start">
+                <div class="text-left md:text-center hidden sm:block flex-1">
+                    <span class="text-[9px] sm:text-[10px] font-cyber tracking-wider text-neonCyan block mb-0.5">ZEN POWER</span>
+                </div>
+                <button id="btn-undo" class="px-2.5 py-1.5 md:w-full bg-neonCyan/10 hover:bg-neonCyan/20 text-neonCyan text-[10px] sm:text-xs font-cyber rounded-lg border border-neonCyan/30 hover:border-neonCyan transition-all flex items-center justify-center gap-1">
+                    <i data-lucide="undo-2" class="w-3 h-3"></i> UNDO
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Column: Responsive Game Board Container & Shape Dock -->
+        <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full max-w-[450px]">
+            <div id="board-container" class="relative bg-cyberCard border-2 border-slate-700 rounded-2xl p-1.5 sm:p-3 shadow-2xl transition-all duration-300 w-full flex items-center justify-center">
+                <!-- Toast Popups -->
+                <div id="toast-banner" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 pointer-events-none scale-75 transition-all duration-300 bg-cyberBg/95 border border-neonCyan px-4 py-2.5 rounded-xl shadow-neon-cyan z-20 text-center min-w-[180px]">
+                    <div id="toast-title" class="font-cyber font-black tracking-widest text-neonCyan text-sm sm:text-base">COMBO!</div>
+                    <div id="toast-subtitle" class="text-[10px] text-slate-300 mt-0.5">+500 POINTS</div>
+                </div>
+
+                <!-- Custom Pause Overlay -->
+                <div id="pause-overlay" class="absolute inset-0 bg-cyberBg/90 backdrop-blur-md hidden flex-col items-center justify-center z-30 rounded-2xl p-4">
+                    <div class="w-12 h-12 rounded-full bg-neonCyan/10 border border-neonCyan/30 flex items-center justify-center text-neonCyan mb-3 animate-pulse">
+                        <i data-lucide="pause" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-cyber font-black text-neonCyan text-base sm:text-lg tracking-widest mb-1">GAME PAUSED</h3>
+                    <p class="text-[10px] text-slate-400 mb-5 text-center">暫時休息一下，隨時重返夜之城</p>
+                    <button id="btn-resume" class="px-5 py-2 bg-gradient-to-r from-neonCyan to-neonPurple text-cyberBg font-cyber font-black text-xs rounded-xl shadow-neon-cyan transition-all active:scale-95">
+                        RESUME GAME
+                    </button>
+                </div>
+
+                <!-- Custom Restart Confirmation Overlay -->
+                <div id="restart-overlay" class="absolute inset-0 bg-cyberBg/95 backdrop-blur-md hidden flex-col items-center justify-center z-30 rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 rounded-full bg-neonMagenta/10 border border-neonMagenta/30 flex items-center justify-center text-neonMagenta mb-3">
+                        <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-cyber font-black text-neonMagenta text-base sm:text-lg tracking-widest mb-1">RESTART GAME?</h3>
+                    <p class="text-[11px] text-slate-400 mb-5 max-w-[220px]">確定要重新開始嗎？<br>當前的得分與進度都將會遺失！</p>
+                    <div class="flex gap-2 w-full max-w-[200px]">
+                        <button id="btn-restart-confirm" class="flex-1 py-2 bg-neonMagenta hover:bg-pink-600 text-cyberBg font-cyber font-black text-[11px] rounded-xl transition-all active:scale-95">
+                            確認重來
+                        </button>
+                        <button id="btn-restart-cancel" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-cyber text-[11px] rounded-xl transition-all border border-slate-700 active:scale-95">
+                            取消返回
+                        </button>
+                    </div>
+                </div>
+
+                <canvas id="canvas-board" class="bg-cyberBg rounded-lg block max-w-full aspect-square" width="400" height="400"></canvas>
+            </div>
+
+            <!-- Shape Dock below the Board -->
+            <div id="dock-container" class="w-full mt-2.5 sm:mt-4 bg-cyberCard/80 border border-slate-800 rounded-2xl p-2 sm:p-3 shrink-0">
+                <div class="text-center text-[8px] sm:text-[10px] font-cyber text-slate-500 uppercase tracking-widest mb-1.5 sm:mb-2">
+                    Tip: Tap 🔄 to rotate | Drag to Place | Press R to Rotate when dragging
+                </div>
+                <div id="dock-slots" class="grid grid-cols-3 gap-2 sm:gap-3">
+                    <!-- Slot 0 -->
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-grab active:cursor-grabbing" data-slot="0">
+                        <canvas id="dock-canvas-0" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
+                        <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="0" title="Rotate Block">
+                            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <!-- Slot 1 -->
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-grab active:cursor-grabbing" data-slot="1">
+                        <canvas id="dock-canvas-1" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
+                        <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="1" title="Rotate Block">
+                            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <!-- Slot 2 -->
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-grab active:cursor-grabbing" data-slot="2">
+                        <canvas id="dock-canvas-2" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
+                        <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="2" title="Rotate Block">
+                            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Play Overlay Menu: Game Over / Start Modes -->
+    <div id="modal-overlay" class="fixed inset-0 bg-cyberBg/90 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
+        <div class="bg-cyberCard border border-slate-800 rounded-2xl max-w-sm w-full p-5 sm:p-6 text-center shadow-2xl shadow-neon-cyan/20">
+            <div id="modal-content" class="flex flex-col items-center">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-neonCyan/10 border border-neonCyan/30 flex items-center justify-center text-neonCyan mb-4 animate-bounce">
+                    <i data-lucide="gamepad-2" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+                </div>
+                <h2 id="modal-title" class="font-cyber font-black text-lg sm:text-xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neonCyan to-neonMagenta mb-2">CYBER PUZZLE</h2>
+                <p id="modal-subtitle" class="text-[11px] sm:text-xs text-slate-400 mb-5 font-sans-cyber">Drag shapes to fill rows and columns. When no more pieces can fit on the remaining grid space, you lose!</p>
+                
+                <button id="btn-modal-action" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-neonCyan to-neonPurple hover:from-cyan-400 hover:to-purple-500 text-cyberBg font-cyber font-black tracking-wider text-xs sm:text-sm rounded-xl transition-all shadow-neon-cyan active:scale-95">
+                    PLAY ARCADE
+                </button>
+                <button id="btn-modal-zen-action" class="w-full mt-2 py-2.5 sm:py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-cyber text-xs sm:text-sm tracking-wider rounded-xl transition-all border border-slate-700">
+                    PLAY ZEN MODE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Manual Overlay -->
+    <div id="help-overlay" class="fixed inset-0 bg-cyberBg/95 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-cyberCard border border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3.5">
+                <h3 class="font-cyber font-bold text-neonCyan text-xs sm:text-sm flex items-center gap-2"><i data-lucide="help-circle" class="w-4 h-4"></i> HOW TO PLAY</h3>
+                <button id="btn-close-help" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            
+            <div class="space-y-3.5 text-xs text-slate-300">
+                <div class="bg-cyberBg/50 p-2.5 rounded-lg border border-slate-900">
+                    <span class="text-neonCyan font-bold block mb-1">🎮 GAMEPLAY MECHANICS</span>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Drag shapes from the bottom dock onto the 10x10 board.</li>
+                        <li>Fill any **horizontal row** or **vertical column** to clear it!</li>
+                        <li>**Rotation (Option 1):** Click the small 🔄 icon on top of the dock block to rotate.</li>
+                        <li>**Rotation (Option 2):** Tap the block to rotate it.</li>
+                        <li>**Rotation (Option 3):** Press **R**, **Space (空白鍵)**, or **Up Arrow** while dragging.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-cyberBg/50 p-2.5 rounded-lg border border-slate-900">
+                    <span class="text-neonMagenta font-bold block mb-1">⚠️ GAME OVER STATE</span>
+                    <p>When the grid becomes too full and **none** of your available shapes in the dock can fit anywhere on the remaining empty spaces, the game ends.</p>
+                </div>
+
+                <div class="bg-slate-800/40 p-2.5 rounded-lg border border-slate-700/50">
+                    <span class="text-white font-bold block mb-1">🕹️ MODES</span>
+                    <p class="text-slate-400 mt-1"><strong class="text-white">Arcade Mode:</strong> Pure tactical challenge. Score high before locking up.</p>
+                    <p class="text-slate-400 mt-2"><strong class="text-white">Zen Mode:</strong> Relaxed play. Enjoy **UNDO** actions. If you block yourself, a Zen Healing clears a portion of the board to let you keep going!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- AUDIO CONTROLLER (Web Audio API Synthesizer) ---
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = false;
+                this.droneOsc = null;
+                this.droneGain = null;
+            }
+
+            init() {
+                if (this.ctx) return;
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.enabled = true;
+                    this.startZenDrone();
+                } catch(e) {
+                    console.warn("Web Audio API not supported.", e);
+                }
+            }
+
+            toggle() {
+                if (!this.ctx) {
+                    this.init();
+                    return this.enabled;
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                    this.enabled = true;
+                    this.startZenDrone();
+                } else if (this.enabled) {
+                    this.enabled = false;
+                    this.stopZenDrone();
+                } else {
+                    this.enabled = true;
+                    this.startZenDrone();
+                }
+                return this.enabled;
+            }
+
+            playGrab() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.06);
+            }
+
+            playPlace() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.14);
+            }
+
+            playRotate() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(500, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.09);
+            }
+
+            playClear(lineCount = 1) {
+                if (!this.enabled || !this.ctx) return;
+                const baseFreq = 523.25; 
+                const chords = [1, 1.25, 1.5, 1.875, 2.25];
+                const now = this.ctx.currentTime;
+                
+                for(let i=0; i<Math.min(lineCount + 1, 5); i++) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(baseFreq * chords[i], now);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * chords[i] * 1.5, now + 0.3);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(now + 0.35);
+                }
+            }
+
+            playGameOver() {
+                if (!this.enabled || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(45, now + 0.8);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.9);
+            }
+
+            startZenDrone() {
+                if (!this.enabled || !this.ctx) return;
+                this.stopZenDrone();
+                this.droneOsc = this.ctx.createOscillator();
+                this.droneGain = this.ctx.createGain();
+                this.droneOsc.type = 'triangle';
+                this.droneOsc.frequency.setValueAtTime(82.41, this.ctx.currentTime); // E2 fundamental drone
+                this.droneGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                this.droneGain.gain.linearRampToValueAtTime(0.03, this.ctx.currentTime + 3);
+                this.droneOsc.connect(this.droneGain);
+                this.droneGain.connect(this.ctx.destination);
+                this.droneOsc.start();
+            }
+
+            stopZenDrone() {
+                if (this.droneOsc) {
+                    try {
+                        this.droneOsc.stop();
+                        this.droneOsc.disconnect();
+                    } catch(e){}
+                    this.droneOsc = null;
+                }
+                if (this.droneGain) {
+                    this.droneGain.disconnect();
+                    this.droneGain = null;
+                }
+            }
+        }
+
+        const SFX = new SoundEngine();
+
+        // --- STREAMING_CHUNK: Initializing Core State Variables and Geometries ---
+        const canvas = document.getElementById('canvas-board');
+        const ctx = canvas.getContext('2d');
+        const gridCols = 10;
+        const gridRows = 10;
+        let blockSize = 40;
+
+        // Perfect Viewport Fitting Algorithm
+        function resizeCanvas() {
+            const main = document.querySelector('main');
+            const boardContainer = document.getElementById('board-container');
+            const mainWidth = main.clientWidth;
+            const mainHeight = main.clientHeight;
+            
+            let maxBoardSide = 400;
+            
+            if (window.innerWidth < 768) {
+                // Stacked mobile layout (Vertical viewport fitting)
+                maxBoardSide = Math.min(mainWidth - 24, mainHeight - 190);
+            } else {
+                // Desktop landscape side-by-side layout
+                maxBoardSide = Math.min(mainWidth - 280, mainHeight - 48);
+            }
+            
+            const side = Math.max(220, Math.min(410, maxBoardSide));
+            canvas.width = side;
+            canvas.height = side;
+            blockSize = side / gridCols;
+            
+            drawDockCanvases();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Core Block Colors
+        const blockColors = {
+            'cyan': '#00f0ff',
+            'yellow': '#ffe138',
+            'purple': '#9d4edd',
+            'green': '#0dff72',
+            'pink': '#ff007f',
+            'blue': '#3877ff',
+            'orange': '#ff8e0d'
+        };
+
+        // Standard Block Templates
+        const shapeTemplates = [
+            { matrix: [[1]], color: 'green' }, // 1x1
+            { matrix: [[1, 1]], color: 'cyan' }, // 1x2
+            { matrix: [[1, 1, 1]], color: 'cyan' }, // 1x3
+            { matrix: [[1, 1, 1, 1]], color: 'cyan' }, // 1x4
+            { matrix: [[1], [1]], color: 'blue' }, // 2x1 vertical
+            { matrix: [[1], [1], [1]], color: 'blue' }, // 3x1 vertical
+            { matrix: [[1, 1], [1, 1]], color: 'yellow' }, // 2x2
+            { matrix: [[1, 1, 1], [1, 1, 1], [1, 1, 1]], color: 'purple' }, // 3x3
+            { matrix: [[1, 0], [1, 1]], color: 'orange' }, // Corner
+            { matrix: [[0, 1, 0], [1, 1, 1]], color: 'pink' }, // T-shape
+            { matrix: [[1, 1, 0], [0, 1, 1]], color: 'green' }, // Z-shape
+            { matrix: [[0, 1, 1], [1, 1, 0]], color: 'orange' }, // S-shape
+            { matrix: [[1, 0, 0], [1, 1, 1]], color: 'blue' }, // J-shape
+            { matrix: [[0, 0, 1], [1, 1, 1]], color: 'pink' }  // L-shape
+        ];
+
+        // States variables
+        let grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
+        let dockCandidates = [null, null, null]; 
+        
+        let score = 0;
+        let clearedLines = 0;
+        let highscore = parseInt(localStorage.getItem('block_puzzle_cyber_best') || '0');
+        document.getElementById('highscore-val').innerText = highscore.toString().padStart(6, '0');
+
+        let isGameOver = false;
+        let isPaused = false;
+        let pendingModeSelection = null; // Used for restart dialog redirecting
+        let gameMode = 'arcade';
+        let particles = [];
+        let screenShakeTime = 0;
+        let moveHistory = []; 
+
+        // Drag tracking structures
+        let dragState = {
+            active: false,
+            slotIndex: -1,
+            pointerId: -1,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            isTouch: false,
+            touchStartTime: 0
+        };
+
+        // Particle Engine
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8 - 1.5;
+                this.color = color;
+                this.alpha = 1;
+                this.size = Math.random() * 4 + 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2; 
+                this.alpha -= 0.04;
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Generate and refill Candidate Dock Shapes
+        function getRandomPiece() {
+            const temp = shapeTemplates[Math.floor(Math.random() * shapeTemplates.length)];
+            return JSON.parse(JSON.stringify(temp));
+        }
+
+        function refillDock() {
+            for (let i = 0; i < 3; i++) {
+                dockCandidates[i] = getRandomPiece();
+            }
+            drawDockCanvases();
+        }
+
+        function checkDockEmpty() {
+            return dockCandidates.every(c => c === null);
+        }
+
+        // --- Rotation Mechanism ---
+        function rotatePieceInSlot(idx) {
+            const piece = dockCandidates[idx];
+            if (!piece) return;
+            
+            const matrix = piece.matrix;
+            const r = matrix.length;
+            const c = matrix[0].length;
+            const newMatrix = Array.from({ length: c }, () => Array(r).fill(0));
+            
+            for (let i = 0; i < r; i++) {
+                for (let j = 0; j < c; j++) {
+                    newMatrix[j][r - 1 - i] = matrix[i][j];
+                }
+            }
+            
+            piece.matrix = newMatrix;
+            drawDockCanvases();
+            SFX.playRotate();
+        }
+
+        // --- STREAMING_CHUNK: Coding Zen Undo snapshot mechanics ---
+        // --- Zen Snapshot Restore ---
+        function saveSnapshot() {
+            if (gameMode !== 'zen') return;
+            const snap = {
+                grid: JSON.stringify(grid),
+                dockCandidates: JSON.stringify(dockCandidates),
+                score: score,
+                clearedLines: clearedLines
+            };
+            moveHistory.push(snap);
+            if (moveHistory.length > 20) moveHistory.shift();
+            updateUndoButtonState();
+        }
+
+        function restoreSnapshot() {
+            if (gameMode !== 'zen' || moveHistory.length === 0) return;
+            const snap = moveHistory.pop();
+            
+            grid = JSON.parse(snap.grid);
+            dockCandidates = JSON.parse(snap.dockCandidates);
+            score = snap.score;
+            clearedLines = snap.clearedLines;
+            
+            updateStatsUI();
+            drawDockCanvases();
+            updateUndoButtonState();
+            SFX.playRotate();
+        }
+
+        function updateUndoButtonState() {
+            const undoBtn = document.getElementById('btn-undo');
+            if (gameMode === 'zen' && moveHistory.length > 0) {
+                undoBtn.classList.remove('opacity-30', 'pointer-events-none');
+            } else {
+                undoBtn.classList.add('opacity-30', 'pointer-events-none');
+            }
+        }
+
+        // Shape placement and bounds validation
+        function canPlacePieceAt(matrix, startCol, startRow) {
+            for (let r = 0; r < matrix.length; r++) {
+                for (let c = 0; c < matrix[r].length; c++) {
+                    if (matrix[r][c] !== 0) {
+                        const targetCol = startCol + c;
+                        const targetRow = startRow + r;
+                        if (targetCol < 0 || targetCol >= gridCols || targetRow < 0 || targetRow >= gridRows) {
+                            return false;
+                        }
+                        if (grid[targetRow][targetCol] !== null) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function placePieceAt(matrix, startCol, startRow, color) {
+            for (let r = 0; r < matrix.length; r++) {
+                for (let c = 0; c < matrix[r].length; c++) {
+                    if (matrix[r][c] !== 0) {
+                        grid[startRow + r][startCol + c] = color;
+                    }
+                }
+            }
+            SFX.playPlace();
+            
+            let tileCount = 0;
+            matrix.forEach(row => row.forEach(val => { if (val) tileCount++; }));
+            score += tileCount * 10;
+        }
+
+        // --- STREAMING_CHUNK: Evaluating complete rows and columns ---
+        // --- Evaluate and clear completed rows & columns ---
+        function evaluateBoard() {
+            let rowsToClear = [];
+            let colsToClear = [];
+
+            for (let r = 0; r < gridRows; r++) {
+                if (grid[r].every(cell => cell !== null)) {
+                    rowsToClear.push(r);
+                }
+            }
+
+            for (let c = 0; c < gridCols; c++) {
+                let colFull = true;
+                for (let r = 0; r < gridRows; r++) {
+                    if (grid[r][c] === null) {
+                        colFull = false;
+                        break;
+                    }
+                }
+                if (colFull) {
+                    colsToClear.push(c);
+                }
+            }
+
+            const totalLines = rowsToClear.length + colsToClear.length;
+            if (totalLines > 0) {
+                // Trigger gorgeous neon particle clear effect
+                rowsToClear.forEach(r => {
+                    for (let c = 0; c < gridCols; c++) {
+                        triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
+                    }
+                });
+
+                colsToClear.forEach(c => {
+                    for (let r = 0; r < gridRows; r++) {
+                        if (!rowsToClear.includes(r)) { 
+                            triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
+                        }
+                    }
+                });
+
+                // Set cells to empty
+                rowsToClear.forEach(r => {
+                    grid[r] = Array(gridCols).fill(null);
+                });
+                colsToClear.forEach(c => {
+                    for (let r = 0; r < gridRows; r++) {
+                        grid[r][c] = null;
+                    }
+                });
+
+                const comboPoints = totalLines * 150 * totalLines;
+                score += comboPoints;
+                clearedLines += totalLines;
+                screenShakeTime = 12;
+
+                SFX.playClear(totalLines);
+                showToast("COMBO CLEAR!", `+${comboPoints} POINTS`);
+
+                if (score > highscore) {
+                    highscore = score;
+                    localStorage.setItem('block_puzzle_cyber_best', highscore.toString());
+                }
+                updateStatsUI();
+            }
+        }
+
+        function triggerParticlesAtCell(c, r, color) {
+            const px = (c + 0.5) * blockSize;
+            const py = (r + 0.5) * blockSize;
+            for (let i = 0; i < 4; i++) {
+                particles.push(new Particle(px, py, color || '#fff'));
+            }
+        }
+
+        // --- Loss Engine (Checks if any candidate can fit anywhere) ---
+        function checkMovesAvailable() {
+            for (let s = 0; s < 3; s++) {
+                const piece = dockCandidates[s];
+                if (piece) {
+                    for (let r = 0; r <= gridRows - piece.matrix.length; r++) {
+                        for (let c = 0; c <= gridCols - piece.matrix[0].length; c++) {
+                            if (canPlacePieceAt(piece.matrix, c, r)) {
+                                return true; 
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function handleNoMovesLeft() {
+            if (gameMode === 'arcade') {
+                triggerGameOver();
+            } else {
+                saveSnapshot();
+                // Zen Healing Action: Clears the inner 6x6 squares to allow easy continuation
+                for (let r = 2; r < 8; r++) {
+                    for (let c = 2; c < 8; c++) {
+                        if (grid[r][c]) {
+                            triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
+                            grid[r][c] = null;
+                        }
+                    }
+                }
+                showToast("ZEN HEALING", "Board refreshed!");
+                SFX.playClear(3);
+                screenShakeTime = 10;
+            }
+        }
+
+        // --- STREAMING_CHUNK: Coding Pause and Resume handlers ---
+        // --- In-Game Pause Subsystem ---
+        function togglePause() {
+            if (isGameOver) return;
+            isPaused = !isPaused;
+            const pauseOverlay = document.getElementById('pause-overlay');
+            const pauseIcon = document.getElementById('pause-icon');
+            
+            if (isPaused) {
+                pauseOverlay.classList.remove('hidden');
+                pauseOverlay.classList.add('flex');
+                pauseIcon.setAttribute('data-lucide', 'play');
+                SFX.stopZenDrone();
+            } else {
+                pauseOverlay.classList.add('hidden');
+                pauseOverlay.classList.remove('flex');
+                pauseIcon.setAttribute('data-lucide', 'pause');
+                if (gameMode === 'zen') {
+                    SFX.startZenDrone();
+                }
+            }
+            lucide.createIcons();
+        }
+
+        // --- Custom Restart Dialog Manager ---
+        function showRestartConfirmation(targetMode = null) {
+            if (score === 0 && !isPaused && !isGameOver) {
+                // Safe to instantly restart or swap modes since no progress was made
+                startNewGame(targetMode || gameMode);
+                return;
+            }
+            pendingModeSelection = targetMode;
+            // Force pause while confirm window is open
+            if (!isPaused) {
+                togglePause();
+            }
+            
+            const restartOverlay = document.getElementById('restart-overlay');
+            restartOverlay.classList.remove('hidden');
+            restartOverlay.classList.add('flex');
+        }
+
+        function hideRestartConfirmation() {
+            const restartOverlay = document.getElementById('restart-overlay');
+            restartOverlay.classList.add('hidden');
+            restartOverlay.classList.remove('flex');
+            pendingModeSelection = null;
+            // Unpause
+            if (isPaused) {
+                togglePause();
+            }
+        }
+
+        // --- STREAMING_CHUNK: Building Canvas Rendering Routines ---
+        // --- RENDERING CANVAS SYSTEM ---
+        function drawBoardGrid() {
+            ctx.strokeStyle = '#181e2e';
+            ctx.lineWidth = 1;
+            for (let c = 0; c <= gridCols; c++) {
+                ctx.beginPath();
+                ctx.moveTo(c * blockSize, 0);
+                ctx.lineTo(c * blockSize, canvas.height);
+                ctx.stroke();
+            }
+            for (let r = 0; r <= gridRows; r++) {
+                ctx.beginPath();
+                ctx.moveTo(0, r * blockSize);
+                ctx.lineTo(canvas.width, r * blockSize);
+                ctx.stroke();
+            }
+        }
+
+        function drawBoardBlock(c, r, color, isPreview = false) {
+            ctx.save();
+            const realColor = blockColors[color] || '#fff';
+            
+            if (isPreview) {
+                ctx.globalAlpha = 0.4;
+                ctx.fillStyle = realColor;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = realColor;
+                ctx.fillRect(c * blockSize + 2, r * blockSize + 2, blockSize - 4, blockSize - 4);
+            } else {
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = realColor;
+                const grad = ctx.createLinearGradient(c * blockSize, r * blockSize, (c + 1) * blockSize, (r + 1) * blockSize);
+                grad.addColorStop(0, realColor);
+                grad.addColorStop(1, '#000000');
+                ctx.fillStyle = grad;
+                ctx.fillRect(c * blockSize + 1, r * blockSize + 1, blockSize - 2, blockSize - 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.fillRect(c * blockSize + 2, r * blockSize + 2, blockSize - 4, 3);
+            }
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if (screenShakeTime > 0) {
+                const dx = (Math.random() - 0.5) * 6;
+                const dy = (Math.random() - 0.5) * 6;
+                ctx.translate(dx, dy);
+                screenShakeTime--;
+            }
+
+            drawBoardGrid();
+
+            // Render active board grid state
+            for (let r = 0; r < gridRows; r++) {
+                for (let c = 0; c < gridCols; c++) {
+                    if (grid[r][c] !== null) {
+                        drawBoardBlock(c, r, grid[r][c]);
+                    }
+                }
+            }
+
+            // Render Drag-and-Drop Floating visual block
+            if (dragState.active) {
+                const piece = dockCandidates[dragState.slotIndex];
+                if (piece) {
+                    const rect = canvas.getBoundingClientRect();
+                    const localX = (dragState.currentX - rect.left) * (canvas.width / rect.width);
+                    const localY = (dragState.currentY - rect.top) * (canvas.height / rect.height);
+                    
+                    let targetY = localY;
+                    if (dragState.isTouch) {
+                        targetY -= 55; // Vertical offset so finger doesn't block the visual grid
+                    }
+
+                    const matrix = piece.matrix;
+                    const mH = matrix.length;
+                    const mW = matrix[0].length;
+                    
+                    const gCol = Math.round((localX / blockSize) - mW / 2);
+                    const gRow = Math.round((targetY / blockSize) - mH / 2);
+
+                    const canPlace = canPlacePieceAt(matrix, gCol, gRow);
+
+                    // 1. Draw snap target ghost cells on main board
+                    if (gCol >= 0 && gCol + mW <= gridCols && gRow >= 0 && gRow + mH <= gridRows) {
+                        for (let r = 0; r < mH; r++) {
+                            for (let c = 0; c < mW; c++) {
+                                if (matrix[r][c] !== 0) {
+                                    drawBoardBlock(gCol + c, gRow + r, canPlace ? piece.color : 'pink', true);
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Render actual floating object
+                    ctx.save();
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = blockColors[piece.color];
+                    
+                    const sizeMultiplier = 0.9;
+                    const scaledBlockSize = blockSize * sizeMultiplier;
+                    const startX = localX - (mW * scaledBlockSize) / 2;
+                    const startY = targetY - (mH * scaledBlockSize) / 2;
+
+                    for (let r = 0; r < mH; r++) {
+                        for (let c = 0; c < mW; c++) {
+                            if (matrix[r][c] !== 0) {
+                                const bx = startX + c * scaledBlockSize;
+                                const by = startY + r * scaledBlockSize;
+                                const realColor = blockColors[piece.color] || '#fff';
+                                const grad = ctx.createLinearGradient(bx, by, bx + scaledBlockSize, by + scaledBlockSize);
+                                grad.addColorStop(0, realColor);
+                                grad.addColorStop(1, '#000000');
+                                ctx.fillStyle = grad;
+                                ctx.fillRect(bx + 1, by + 1, scaledBlockSize - 2, scaledBlockSize - 2);
+                            }
+                        }
+                    }
+                    ctx.restore();
+                }
+            }
+
+            // Update and render explosions
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw(ctx);
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+
+        // Render current shapes in dockslots
+        function drawDockCanvases() {
+            for (let i = 0; i < 3; i++) {
+                const c = document.getElementById(`dock-canvas-${i}`);
+                if (!c) continue;
+                const sCtx = c.getContext('2d');
+                sCtx.clearRect(0, 0, c.width, c.height);
+                
+                const piece = dockCandidates[i];
+                if (!piece) continue;
+
+                const matrix = piece.matrix;
+                const mH = matrix.length;
+                const mW = matrix[0].length;
+                
+                // Scale rendering inside the dock canvas space proportionally
+                const size = window.innerWidth < 640 ? 12 : 16; 
+                const startX = (c.width - mW * size) / 2;
+                const startY = (c.height - mH * size) / 2;
+
+                sCtx.save();
+                sCtx.shadowBlur = 6;
+                sCtx.shadowColor = blockColors[piece.color];
+
+                for (let r = 0; r < mH; r++) {
+                    for (let c = 0; c < mW; c++) {
+                        if (matrix[r][c] !== 0) {
+                            const realColor = blockColors[piece.color] || '#fff';
+                            const grad = sCtx.createLinearGradient(startX + c*size, startY + r*size, startX + (c+1)*size, startY + (r+1)*size);
+                            grad.addColorStop(0, realColor);
+                            grad.addColorStop(1, '#000000');
+                            sCtx.fillStyle = grad;
+                            sCtx.fillRect(startX + c * size + 1, startY + r * size + 1, size - 2, size - 2);
+                        }
+                    }
+                }
+                sCtx.restore();
+            }
+        }
+
+        // --- STREAMING_CHUNK: Coding Drag and Drop Event listeners ---
+        // --- UNIFIED POINTER DRAG INTERACTION HANDLERS ---
+        const slotsContainer = document.getElementById('dock-slots');
+        
+        slotsContainer.addEventListener('pointerdown', e => {
+            if (isGameOver || isPaused) return;
+
+            // Stop drag event if clicking direct rotate buttons inside slots
+            if (e.target.closest('.btn-rotate-slot')) {
+                return;
+            }
+
+            const slotEl = e.target.closest('.dock-slot');
+            if (!slotEl) return;
+
+            const idx = parseInt(slotEl.dataset.slot);
+            if (isNaN(idx) || !dockCandidates[idx]) return;
+
+            SFX.init();
+            
+            // Record initial drag states
+            dragState.active = true;
+            dragState.slotIndex = idx;
+            dragState.pointerId = e.pointerId;
+            dragState.isTouch = e.pointerType === 'touch';
+            dragState.touchStartTime = Date.now();
+            
+            dragState.startX = e.clientX;
+            dragState.startY = e.clientY;
+            dragState.currentX = e.clientX;
+            dragState.currentY = e.clientY;
+
+            // Hide the static preview representation
+            document.getElementById(`dock-canvas-${idx}`).style.opacity = '0';
+            
+            SFX.playGrab();
+            saveSnapshot(); 
+        });
+
+        // Add explicit click handlers for the corner rotation buttons
+        document.querySelectorAll('.btn-rotate-slot').forEach(btn => {
+            btn.addEventListener('pointerdown', e => {
+                e.stopPropagation(); // Stop drag process from starting
+                const idx = parseInt(btn.dataset.slot);
+                rotatePieceInSlot(idx);
+            });
+        });
+
+        // Global window listeners to protect from cursor escaping boundary issues
+        window.addEventListener('pointermove', e => {
+            if (!dragState.active || e.pointerId !== dragState.pointerId) return;
+            dragState.currentX = e.clientX;
+            dragState.currentY = e.clientY;
+        });
+
+        window.addEventListener('pointerup', e => {
+            if (!dragState.active || e.pointerId !== dragState.pointerId) return;
+
+            const idx = dragState.slotIndex;
+            const piece = dockCandidates[idx];
+            
+            // Calculate total drag offset duration and distance
+            const duration = Date.now() - dragState.touchStartTime;
+            const dist = Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY);
+
+            if (duration < 240 && dist < 12) {
+                // Treated as a quick tap -> ROTATE piece inside the slot!
+                rotatePieceInSlot(idx);
+                if (gameMode === 'zen') moveHistory.pop(); // Revert pre-move snapshot since no placement happened
+            } else if (piece) {
+                // Process grid placement coordinates
+                const rect = canvas.getBoundingClientRect();
+                const localX = (dragState.currentX - rect.left) * (canvas.width / rect.width);
+                const localY = (dragState.currentY - rect.top) * (canvas.height / rect.height);
+                
+                let targetY = localY;
+                if (dragState.isTouch) {
+                    targetY -= 55; 
+                }
+
+                const matrix = piece.matrix;
+                const mH = matrix.length;
+                const mW = matrix[0].length;
+                
+                const gCol = Math.round((localX / blockSize) - mW / 2);
+                const gRow = Math.round((targetY / blockSize) - mH / 2);
+
+                if (canPlacePieceAt(matrix, gCol, gRow)) {
+                    placePieceAt(matrix, gCol, gRow, piece.color);
+                    dockCandidates[idx] = null; // consume piece from slot
+
+                    evaluateBoard();
+
+                    // REFRESH: Refill immediately once ALL three slots are emptied
+                    if (checkDockEmpty()) {
+                        refillDock();
+                    }
+
+                    // Check if moves are possible with current shapes remaining
+                    if (!checkMovesAvailable()) {
+                        handleNoMovesLeft();
+                    }
+                } else {
+                    if (gameMode === 'zen') moveHistory.pop();
+                }
+            }
+
+            // Reset visual states
+            const canvasEl = document.getElementById(`dock-canvas-${idx}`);
+            if (canvasEl) canvasEl.style.opacity = '1';
+
+            dragState.active = false;
+            dragState.slotIndex = -1;
+            dragState.pointerId = -1;
+            
+            drawDockCanvases();
+            updateUndoButtonState();
+        });
+
+        window.addEventListener('pointercancel', e => {
+            if (!dragState.active || e.pointerId !== dragState.pointerId) return;
+            const idx = dragState.slotIndex;
+            const canvasEl = document.getElementById(`dock-canvas-${idx}`);
+            if (canvasEl) canvasEl.style.opacity = '1';
+            dragState.active = false;
+            dragState.slotIndex = -1;
+            dragState.pointerId = -1;
+            drawDockCanvases();
+        });
+
+        // --- TOAST AND DATA GRAPHIC HANDLERS ---
+        function showToast(title, subtitle) {
+            const toast = document.getElementById('toast-banner');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-subtitle').innerText = subtitle;
+            toast.classList.remove('opacity-0', 'scale-75');
+            toast.classList.add('opacity-100', 'scale-100');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'scale-75');
+                toast.classList.remove('opacity-100', 'scale-100');
+            }, 1200);
+        }
+
+        function updateStatsUI() {
+            document.getElementById('score-val').innerText = score.toString().padStart(6, '0');
+            document.getElementById('lines-val').innerText = clearedLines.toString().padStart(2, '0');
+            document.getElementById('highscore-val').innerText = highscore.toString().padStart(6, '0');
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            SFX.playGameOver();
+            document.getElementById('modal-title').innerText = "GAME OVER";
+            document.getElementById('modal-subtitle').innerHTML = `No valid moves available!<br>Final Score: <strong class="text-neonCyan">${score}</strong>`;
+            document.getElementById('btn-modal-action').innerText = "RESTART ARCADE";
+            
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        function startNewGame(modeSelected = 'arcade') {
+            gameMode = modeSelected;
+            grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
+            score = 0;
+            clearedLines = 0;
+            isGameOver = false;
+            isPaused = false;
+            moveHistory = [];
+
+            // Reset pause icons/overlays
+            document.getElementById('pause-overlay').classList.add('hidden');
+            document.getElementById('pause-icon').setAttribute('data-lucide', 'pause');
+
+            const zenPanel = document.getElementById('zen-panel');
+            const modeArcadeBtn = document.getElementById('mode-arcade');
+            const modeZenBtn = document.getElementById('mode-zen');
+
+            if (gameMode === 'zen') {
+                zenPanel.classList.remove('opacity-30', 'pointer-events-none');
+                modeZenBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonCyan to-cyan-600 text-white font-bold transition-all shadow-md";
+                modeArcadeBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all";
+                SFX.startZenDrone();
+            } else {
+                zenPanel.classList.add('opacity-30', 'pointer-events-none');
+                modeArcadeBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md";
+                modeZenBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all";
+                SFX.stopZenDrone();
+            }
+
+            updateStatsUI();
+            refillDock();
+            updateUndoButtonState();
+
+            document.getElementById('modal-overlay').classList.add('hidden');
+            lucide.createIcons();
+            SFX.init();
+        }
+
+        // --- BUTTON ACTION LISTENERS ---
+        document.getElementById('btn-modal-action').addEventListener('click', () => {
+            startNewGame('arcade');
+        });
+
+        document.getElementById('btn-modal-zen-action').addEventListener('click', () => {
+            startNewGame('zen');
+        });
+
+        // Mode switch triggers restart overlay instead of raw confirm prompt
+        document.getElementById('mode-arcade').addEventListener('click', () => {
+            if (gameMode !== 'arcade') {
+                showRestartConfirmation('arcade');
+            }
+        });
+
+        document.getElementById('mode-zen').addEventListener('click', () => {
+            if (gameMode !== 'zen') {
+                showRestartConfirmation('zen');
+            }
+        });
+
+        document.getElementById('btn-audio').addEventListener('click', () => {
+            const isSoundEnabled = SFX.toggle();
+            const icon = document.getElementById('audio-icon');
+            if (isSoundEnabled) {
+                icon.setAttribute('data-lucide', 'volume-2');
+                document.getElementById('btn-audio').classList.add('border-neonCyan');
+            } else {
+                icon.setAttribute('data-lucide', 'volume-x');
+                document.getElementById('btn-audio').classList.remove('border-neonCyan');
+            }
+            lucide.createIcons();
+        });
+
+        // Pause Button Click handlers
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
+        document.getElementById('btn-resume').addEventListener('click', togglePause);
+
+        // Restart Button Click handlers
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            showRestartConfirmation();
+        });
+
+        document.getElementById('btn-restart-confirm').addEventListener('click', () => {
+            const mode = pendingModeSelection || gameMode;
+            startNewGame(mode);
+            hideRestartConfirmation();
+        });
+
+        document.getElementById('btn-restart-cancel').addEventListener('click', () => {
+            hideRestartConfirmation();
+        });
+
+        document.getElementById('btn-undo').addEventListener('click', () => {
+            restoreSnapshot();
+        });
+
+        document.getElementById('btn-help').addEventListener('click', () => {
+            document.getElementById('help-overlay').classList.replace('hidden', 'flex');
+        });
+        document.getElementById('btn-close-help').addEventListener('click', () => {
+            document.getElementById('help-overlay').classList.replace('flex', 'hidden');
+        });
+
+        // Keyboard Actions: Handle Rotating when dragging
+        window.addEventListener('keydown', event => {
+            if (isGameOver || isPaused) return;
+
+            if (dragState.active) {
+                // If dragging a piece, pressing 'R', 'Up Arrow' or 'Space' rotates it instantly!
+                if (event.key === 'r' || event.key === 'R' || event.key === 'ArrowUp' || event.key === ' ') {
+                    rotatePieceInSlot(dragState.slotIndex);
+                    event.preventDefault();
+                }
+            }
+        });
+
+        // Prevent accidental bouncing/scrolling during drags on touch screen
+        document.body.addEventListener('touchmove', function(e) {
+            if(dragState.active) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Initialize icons, dimensions, and loops
+        lucide.createIcons();
+        resizeCanvas();
+        requestAnimationFrame(draw);
+    </script>
+</body>
+</html>
