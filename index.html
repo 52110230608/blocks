@@ -80,18 +80,21 @@
                 <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
             </button>
             <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-800 shrink-0">
-                <button id="mode-arcade" class="px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md">
+                <button id="mode-arcade" class="px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md">
                     ARCADE
                 </button>
-                <button id="mode-zen" class="px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all">
+                <button id="mode-zen" class="px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all">
                     ZEN
+                </button>
+                <button id="mode-versus" class="px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all">
+                    2P
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Game Section (Locked Viewport Fitting) -->
-    <main class="flex-1 min-h-0 px-2 py-3 sm:p-4 flex flex-col md:flex-row items-center justify-center max-w-5xl mx-auto w-full gap-3 md:gap-6 lg:gap-8 overflow-hidden">
+    <main id="single-player-layout" class="flex-1 min-h-0 px-2 py-3 sm:p-4 flex flex-col md:flex-row items-center justify-center max-w-5xl mx-auto w-full gap-3 md:gap-6 lg:gap-8 overflow-hidden">
         
         <!-- Stats Panel (Left Side on Desktop, Horizontal Row on Mobile) -->
         <div class="flex md:flex-col flex-row gap-2 md:gap-4 w-full md:w-36 shrink-0 justify-between md:justify-start">
@@ -172,23 +175,23 @@
                 <div class="text-center text-[8px] sm:text-[10px] font-cyber text-slate-500 uppercase tracking-widest mb-1.5 sm:mb-2">
                     Tip: Click a block to pick | Move mouse to position | Click board to place | 🔄 or R to rotate
                 </div>
-                <div id="dock-slots" class="grid grid-cols-3 gap-2 sm:gap-3">
+                <div id="dock-slots" class="grid grid-cols-3 gap-2 sm:gap-3" data-player="0">
                     <!-- Slot 0 -->
-                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="0">
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="0" data-player="0">
                         <canvas id="dock-canvas-0" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
                         <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="0" title="Rotate Block">
                             <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
                     <!-- Slot 1 -->
-                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="1">
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="1" data-player="0">
                         <canvas id="dock-canvas-1" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
                         <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="1" title="Rotate Block">
                             <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
                     <!-- Slot 2 -->
-                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="2">
+                    <div class="dock-slot h-16 sm:h-24 bg-cyberBg/60 border border-slate-800/80 rounded-xl flex items-center justify-center relative cursor-pointer" data-slot="2" data-player="0">
                         <canvas id="dock-canvas-2" width="80" height="80" class="w-full h-full max-w-[80px] max-h-[80px]"></canvas>
                         <button class="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-neonCyan/20 text-slate-400 hover:text-neonCyan rounded-md border border-slate-800 transition-all z-20 btn-rotate-slot" data-slot="2" title="Rotate Block">
                             <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
@@ -213,6 +216,73 @@
         </div>
     </main>
 
+    <!-- 2-Player Versus Layout -->
+    <main id="versus-layout" class="hidden flex-1 min-h-0 px-1 sm:px-2 py-2 flex flex-row items-stretch justify-center gap-1 sm:gap-3 w-full max-w-6xl mx-auto overflow-hidden">
+        <!-- Player 1 -->
+        <div class="flex-1 flex flex-col items-center min-w-0 min-h-0" data-player-panel="0">
+            <div class="w-full flex items-center justify-between mb-1 px-1">
+                <span class="font-cyber text-[10px] sm:text-xs text-neonCyan font-bold tracking-wider">PLAYER 1</span>
+                <span id="p1-score-val" class="font-cyber text-sm sm:text-lg text-neonCyan font-bold">0</span>
+            </div>
+            <div id="p1-board-container" class="relative bg-cyberCard border-2 border-neonCyan/40 rounded-xl p-1 w-full flex items-center justify-center flex-1 min-h-0">
+                <div id="p1-locked-overlay" class="hidden absolute inset-0 bg-cyberBg/80 backdrop-blur-sm rounded-xl z-20 flex items-center justify-center">
+                    <span class="font-cyber text-xs text-neonCyan tracking-widest">LOCKED</span>
+                </div>
+                <canvas id="p1-canvas-board" class="bg-cyberBg rounded-lg block max-w-full aspect-square" width="300" height="300"></canvas>
+            </div>
+            <div class="w-full mt-1 bg-cyberCard/80 border border-slate-800 rounded-xl p-1.5 shrink-0">
+                <div id="p1-dock-slots" class="grid grid-cols-3 gap-1" data-player="0">
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="0" data-player="0">
+                        <canvas id="p1-dock-canvas-0" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="0" data-player="0"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="1" data-player="0">
+                        <canvas id="p1-dock-canvas-1" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="1" data-player="0"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="2" data-player="0">
+                        <canvas id="p1-dock-canvas-2" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="2" data-player="0"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center shrink-0 px-0.5">
+            <span class="font-cyber font-black text-lg sm:text-2xl text-transparent bg-clip-text bg-gradient-to-b from-neonCyan to-neonMagenta">VS</span>
+        </div>
+
+        <!-- Player 2 -->
+        <div class="flex-1 flex flex-col items-center min-w-0 min-h-0" data-player-panel="1">
+            <div class="w-full flex items-center justify-between mb-1 px-1">
+                <span class="font-cyber text-[10px] sm:text-xs text-neonMagenta font-bold tracking-wider">PLAYER 2</span>
+                <span id="p2-score-val" class="font-cyber text-sm sm:text-lg text-neonMagenta font-bold">0</span>
+            </div>
+            <div id="p2-board-container" class="relative bg-cyberCard border-2 border-neonMagenta/40 rounded-xl p-1 w-full flex items-center justify-center flex-1 min-h-0">
+                <div id="p2-locked-overlay" class="hidden absolute inset-0 bg-cyberBg/80 backdrop-blur-sm rounded-xl z-20 flex items-center justify-center">
+                    <span class="font-cyber text-xs text-neonMagenta tracking-widest">LOCKED</span>
+                </div>
+                <canvas id="p2-canvas-board" class="bg-cyberBg rounded-lg block max-w-full aspect-square" width="300" height="300"></canvas>
+            </div>
+            <div class="w-full mt-1 bg-cyberCard/80 border border-slate-800 rounded-xl p-1.5 shrink-0">
+                <div id="p2-dock-slots" class="grid grid-cols-3 gap-1" data-player="1">
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="0" data-player="1">
+                        <canvas id="p2-dock-canvas-0" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="0" data-player="1"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="1" data-player="1">
+                        <canvas id="p2-dock-canvas-1" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="1" data-player="1"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                    <div class="dock-slot h-12 sm:h-14 bg-cyberBg/60 border border-slate-800/80 rounded-lg flex items-center justify-center relative cursor-pointer" data-slot="2" data-player="1">
+                        <canvas id="p2-dock-canvas-2" width="48" height="48" class="max-w-[48px] max-h-[48px]"></canvas>
+                        <button class="absolute top-0.5 right-0.5 p-0.5 bg-slate-900/80 text-slate-400 rounded btn-rotate-slot" data-slot="2" data-player="1"><i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
     <!-- Play Overlay Menu: Game Over / Start Modes -->
     <div id="modal-overlay" class="fixed inset-0 bg-cyberBg/90 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
         <div class="bg-cyberCard border border-slate-800 rounded-2xl max-w-sm w-full p-5 sm:p-6 text-center shadow-2xl shadow-neon-cyan/20">
@@ -228,6 +298,9 @@
                 </button>
                 <button id="btn-modal-zen-action" class="w-full mt-2 py-2.5 sm:py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-cyber text-xs sm:text-sm tracking-wider rounded-xl transition-all border border-slate-700">
                     PLAY ZEN MODE
+                </button>
+                <button id="btn-modal-versus-action" class="w-full mt-2 py-2.5 sm:py-3 bg-gradient-to-r from-neonMagenta to-neonCyan hover:opacity-90 text-cyberBg font-cyber font-black text-xs sm:text-sm tracking-wider rounded-xl transition-all">
+                    2 PLAYER BATTLE
                 </button>
             </div>
         </div>
@@ -263,6 +336,7 @@
                     <span class="text-white font-bold block mb-1">🕹️ MODES</span>
                     <p class="text-slate-400 mt-1"><strong class="text-white">Arcade Mode:</strong> Pure tactical challenge. Score high before locking up.</p>
                     <p class="text-slate-400 mt-2"><strong class="text-white">Zen Mode:</strong> Relaxed play. Enjoy **UNDO** actions. If you block yourself, a Zen Healing clears a portion of the board to let you keep going!</p>
+                    <p class="text-slate-400 mt-2"><strong class="text-white">2 Player Battle:</strong> Side-by-side boards. Each player picks from their own dock. When you can't place any pieces, you're locked — the other keeps playing. Highest score wins!</p>
                 </div>
             </div>
         </div>
@@ -423,36 +497,94 @@
         const SFX = new SoundEngine();
 
         // --- STREAMING_CHUNK: Initializing Core State Variables and Geometries ---
-        const canvas = document.getElementById('canvas-board');
-        const ctx = canvas.getContext('2d');
         const gridCols = 10;
         const gridRows = 10;
+        let gameMode = 'arcade';
+
+        function createPlayer(index) {
+            return {
+                index,
+                prefix: '',
+                canvas: null,
+                ctx: null,
+                blockSize: 40,
+                grid: Array.from({ length: gridRows }, () => Array(gridCols).fill(null)),
+                dockCandidates: [null, null, null],
+                nextWave: [null, null, null],
+                pieceBag: [],
+                comboStreak: 0,
+                score: 0,
+                clearedLines: 0,
+                isLocked: false,
+                particles: [],
+                screenShakeTime: 0,
+                dockCanvasSize: 16
+            };
+        }
+
+        function bindPlayerDom(p) {
+            const prefix = p.prefix;
+            p.canvas = document.getElementById(prefix ? prefix + 'canvas-board' : 'canvas-board');
+            p.ctx = p.canvas ? p.canvas.getContext('2d') : null;
+            p.dockCanvasSize = gameMode === 'versus' ? 9 : (window.innerWidth < 640 ? 12 : 16);
+        }
+
+        function rebindPlayers() {
+            players.forEach((p, i) => {
+                p.prefix = gameMode === 'versus' ? (i === 0 ? 'p1-' : 'p2-') : (i === 0 ? '' : 'p2-');
+                bindPlayerDom(p);
+            });
+            syncP0Aliases();
+        }
+
+        function el(p, id) {
+            return document.getElementById(p.prefix ? p.prefix + id : id);
+        }
+
+        let players = [createPlayer(0), createPlayer(1)];
+
+        // Legacy aliases for single-player code paths (point to player 0)
+        let canvas = null;
+        let ctx = null;
         let blockSize = 40;
 
         // Perfect Viewport Fitting Algorithm
         function resizeCanvas() {
-            const main = document.querySelector('main');
-            const boardContainer = document.getElementById('board-container');
-            const mainWidth = main.clientWidth;
-            const mainHeight = main.clientHeight;
-            
-            let maxBoardSide = 400;
-            
-            if (window.innerWidth < 768) {
-                // Stacked mobile layout (Vertical viewport fitting)
-                maxBoardSide = Math.min(mainWidth - 24, mainHeight - 190);
+            if (gameMode === 'versus') {
+                const versusMain = document.getElementById('versus-layout');
+                const panelW = versusMain.clientWidth / 2 - 24;
+                const panelH = versusMain.clientHeight - 100;
+                const side = Math.max(140, Math.min(280, Math.min(panelW, panelH)));
+                players.forEach(p => {
+                    bindPlayerDom(p);
+                    if (!p.canvas) return;
+                    p.canvas.width = side;
+                    p.canvas.height = side;
+                    p.blockSize = side / gridCols;
+                });
             } else {
-                // Desktop landscape side-by-side layout
-                maxBoardSide = Math.min(mainWidth - 280, mainHeight - 48);
+                const main = document.getElementById('single-player-layout');
+                const mainWidth = main.clientWidth;
+                const mainHeight = main.clientHeight;
+                let maxBoardSide = 400;
+                if (window.innerWidth < 768) {
+                    maxBoardSide = Math.min(mainWidth - 24, mainHeight - 190);
+                } else {
+                    maxBoardSide = Math.min(mainWidth - 280, mainHeight - 48);
+                }
+                const side = Math.max(220, Math.min(410, maxBoardSide));
+                bindPlayerDom(players[0]);
+                players[0].canvas.width = side;
+                players[0].canvas.height = side;
+                players[0].blockSize = side / gridCols;
+                blockSize = players[0].blockSize;
+                canvas = players[0].canvas;
+                ctx = players[0].ctx;
             }
-            
-            const side = Math.max(220, Math.min(410, maxBoardSide));
-            canvas.width = side;
-            canvas.height = side;
-            blockSize = side / gridCols;
-            
-            drawDockCanvases();
-            drawNextWavePreview();
+            players.forEach(p => {
+                drawDockCanvases(p);
+                if (p.prefix === '' || gameMode !== 'versus') drawNextWavePreview(p);
+            });
         }
         window.addEventListener('resize', resizeCanvas);
 
@@ -485,11 +617,11 @@
             { matrix: [[0, 0, 1], [1, 1, 1]], color: 'pink' }  // L-shape
         ];
 
-        // States variables
-        let grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
-        let dockCandidates = [null, null, null]; 
-        let nextWave = [null, null, null];
-        let pieceBag = [];
+        // States variables (single-player shared + versus)
+        let grid = players[0].grid;
+        let dockCandidates = players[0].dockCandidates;
+        let nextWave = players[0].nextWave;
+        let pieceBag = players[0].pieceBag;
         let comboStreak = 0;
         
         let score = 0;
@@ -499,23 +631,34 @@
 
         let isGameOver = false;
         let isPaused = false;
-        let pendingModeSelection = null; // Used for restart dialog redirecting
-        let gameMode = 'arcade';
-        let particles = [];
+        let pendingModeSelection = null;
+        let versusFinished = false;
         let screenShakeTime = 0;
-        let moveHistory = []; 
+        let moveHistory = [];
 
-        // Drag tracking structures
+        function syncP0Aliases() {
+            const p = players[0];
+            grid = p.grid;
+            dockCandidates = p.dockCandidates;
+            nextWave = p.nextWave;
+            pieceBag = p.pieceBag;
+            score = p.score;
+            clearedLines = p.clearedLines;
+            comboStreak = p.comboStreak;
+            canvas = p.canvas;
+            ctx = p.ctx;
+            blockSize = p.blockSize;
+        }
+
+        // Pick tracking (global — one cursor, identifies which player)
         let dragState = {
             active: false,
+            playerIndex: 0,
             slotIndex: -1,
             pointerId: -1,
-            startX: 0,
-            startY: 0,
             currentX: 0,
             currentY: 0,
-            isTouch: false,
-            touchStartTime: 0
+            isTouch: false
         };
 
         // Particle Engine
@@ -555,69 +698,68 @@
             return arr;
         }
 
-        function refillPieceBag() {
-            pieceBag = [];
-            for (let i = 0; i < shapeTemplates.length; i++) {
-                pieceBag.push(i);
-            }
-            shuffleArray(pieceBag);
-        }
-
-        function nextPieceFromBag() {
-            if (pieceBag.length === 0) refillPieceBag();
-            const idx = pieceBag.pop();
-            return JSON.parse(JSON.stringify(shapeTemplates[idx]));
-        }
-
         function clonePiece(piece) {
             return JSON.parse(JSON.stringify(piece));
         }
 
-        function fillWaveFromBag(wave) {
+        function refillPieceBag(p) {
+            p.pieceBag = [];
+            for (let i = 0; i < shapeTemplates.length; i++) {
+                p.pieceBag.push(i);
+            }
+            shuffleArray(p.pieceBag);
+        }
+
+        function nextPieceFromBag(p) {
+            if (p.pieceBag.length === 0) refillPieceBag(p);
+            const idx = p.pieceBag.pop();
+            return JSON.parse(JSON.stringify(shapeTemplates[idx]));
+        }
+
+        function fillWaveFromBag(p, wave) {
             for (let i = 0; i < 3; i++) {
-                wave[i] = nextPieceFromBag();
+                wave[i] = nextPieceFromBag(p);
             }
         }
 
-        function initDockAndNextWave() {
-            pieceBag = [];
+        function initDockAndNextWave(p) {
+            p.pieceBag = [];
             for (let i = 0; i < 3; i++) {
-                dockCandidates[i] = nextPieceFromBag();
+                p.dockCandidates[i] = nextPieceFromBag(p);
             }
-            fillWaveFromBag(nextWave);
-            drawDockCanvases();
-            drawNextWavePreview();
+            fillWaveFromBag(p, p.nextWave);
+            drawDockCanvases(p);
+            if (gameMode !== 'versus') drawNextWavePreview(p);
         }
 
-        function promoteNextWave() {
-            dockCandidates = nextWave.map(p => clonePiece(p));
-            fillWaveFromBag(nextWave);
-            drawDockCanvases();
-            drawNextWavePreview();
+        function promoteNextWave(p) {
+            p.dockCandidates = p.nextWave.map(piece => clonePiece(piece));
+            fillWaveFromBag(p, p.nextWave);
+            drawDockCanvases(p);
+            if (gameMode !== 'versus') drawNextWavePreview(p);
         }
 
-        function checkDockEmpty() {
-            return dockCandidates.every(c => c === null);
+        function checkDockEmpty(p) {
+            return p.dockCandidates.every(c => c === null);
         }
 
-        // --- Rotation Mechanism ---
-        function rotatePieceInSlot(idx) {
-            const piece = dockCandidates[idx];
+        function rotatePieceInSlot(p, idx) {
+            const piece = p.dockCandidates[idx];
             if (!piece) return;
-            
+
             const matrix = piece.matrix;
             const r = matrix.length;
             const c = matrix[0].length;
             const newMatrix = Array.from({ length: c }, () => Array(r).fill(0));
-            
+
             for (let i = 0; i < r; i++) {
                 for (let j = 0; j < c; j++) {
                     newMatrix[j][r - 1 - i] = matrix[i][j];
                 }
             }
-            
+
             piece.matrix = newMatrix;
-            drawDockCanvases();
+            drawDockCanvases(p);
             SFX.playRotate();
         }
 
@@ -625,6 +767,7 @@
         // --- Zen Snapshot Restore ---
         function saveSnapshot() {
             if (gameMode !== 'zen') return;
+            syncP0Aliases();
             const snap = {
                 grid: JSON.stringify(grid),
                 dockCandidates: JSON.stringify(dockCandidates),
@@ -642,18 +785,20 @@
         function restoreSnapshot() {
             if (gameMode !== 'zen' || moveHistory.length === 0) return;
             const snap = moveHistory.pop();
-            
-            grid = JSON.parse(snap.grid);
-            dockCandidates = JSON.parse(snap.dockCandidates);
-            nextWave = snap.nextWave ? JSON.parse(snap.nextWave) : [null, null, null];
-            pieceBag = snap.pieceBag ? JSON.parse(snap.pieceBag) : [];
-            score = snap.score;
-            clearedLines = snap.clearedLines;
-            comboStreak = snap.comboStreak || 0;
-            
+            const p = players[0];
+
+            p.grid = JSON.parse(snap.grid);
+            p.dockCandidates = JSON.parse(snap.dockCandidates);
+            p.nextWave = snap.nextWave ? JSON.parse(snap.nextWave) : [null, null, null];
+            p.pieceBag = snap.pieceBag ? JSON.parse(snap.pieceBag) : [];
+            p.score = snap.score;
+            p.clearedLines = snap.clearedLines;
+            p.comboStreak = snap.comboStreak || 0;
+            syncP0Aliases();
+
             updateStatsUI();
-            drawDockCanvases();
-            drawNextWavePreview();
+            drawDockCanvases(p);
+            drawNextWavePreview(p);
             updateUndoButtonState();
             SFX.playRotate();
         }
@@ -667,8 +812,7 @@
             }
         }
 
-        // Shape placement and bounds validation
-        function canPlacePieceAt(matrix, startCol, startRow) {
+        function canPlacePieceAt(p, matrix, startCol, startRow) {
             for (let r = 0; r < matrix.length; r++) {
                 for (let c = 0; c < matrix[r].length; c++) {
                     if (matrix[r][c] !== 0) {
@@ -677,7 +821,7 @@
                         if (targetCol < 0 || targetCol >= gridCols || targetRow < 0 || targetRow >= gridRows) {
                             return false;
                         }
-                        if (grid[targetRow][targetCol] !== null) {
+                        if (p.grid[targetRow][targetCol] !== null) {
                             return false;
                         }
                     }
@@ -686,29 +830,27 @@
             return true;
         }
 
-        function placePieceAt(matrix, startCol, startRow, color) {
+        function placePieceAt(p, matrix, startCol, startRow, color) {
             for (let r = 0; r < matrix.length; r++) {
                 for (let c = 0; c < matrix[r].length; c++) {
                     if (matrix[r][c] !== 0) {
-                        grid[startRow + r][startCol + c] = color;
+                        p.grid[startRow + r][startCol + c] = color;
                     }
                 }
             }
             SFX.playPlace();
-            
+
             let tileCount = 0;
             matrix.forEach(row => row.forEach(val => { if (val) tileCount++; }));
-            score += tileCount * 10;
+            p.score += tileCount * 10;
         }
 
-        // --- STREAMING_CHUNK: Evaluating complete rows and columns ---
-        // --- Evaluate and clear completed rows & columns ---
-        function evaluateBoard() {
+        function evaluateBoard(p) {
             let rowsToClear = [];
             let colsToClear = [];
 
             for (let r = 0; r < gridRows; r++) {
-                if (grid[r].every(cell => cell !== null)) {
+                if (p.grid[r].every(cell => cell !== null)) {
                     rowsToClear.push(r);
                 }
             }
@@ -716,7 +858,7 @@
             for (let c = 0; c < gridCols; c++) {
                 let colFull = true;
                 for (let r = 0; r < gridRows; r++) {
-                    if (grid[r][c] === null) {
+                    if (p.grid[r][c] === null) {
                         colFull = false;
                         break;
                     }
@@ -728,44 +870,44 @@
 
             const totalLines = rowsToClear.length + colsToClear.length;
             if (totalLines > 0) {
-                // Trigger gorgeous neon particle clear effect
                 rowsToClear.forEach(r => {
                     for (let c = 0; c < gridCols; c++) {
-                        triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
+                        triggerParticlesAtCell(p, c, r, blockColors[p.grid[r][c]]);
                     }
                 });
 
                 colsToClear.forEach(c => {
                     for (let r = 0; r < gridRows; r++) {
-                        if (!rowsToClear.includes(r)) { 
-                            triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
+                        if (!rowsToClear.includes(r)) {
+                            triggerParticlesAtCell(p, c, r, blockColors[p.grid[r][c]]);
                         }
                     }
                 });
 
-                // Set cells to empty
                 rowsToClear.forEach(r => {
-                    grid[r] = Array(gridCols).fill(null);
+                    p.grid[r] = Array(gridCols).fill(null);
                 });
                 colsToClear.forEach(c => {
                     for (let r = 0; r < gridRows; r++) {
-                        grid[r][c] = null;
+                        p.grid[r][c] = null;
                     }
                 });
 
-                comboStreak++;
-                const streakMult = Math.min(2, 1 + 0.25 * (comboStreak - 1));
+                p.comboStreak++;
+                const streakMult = Math.min(2, 1 + 0.25 * (p.comboStreak - 1));
                 const comboPoints = Math.round(totalLines * 150 * totalLines * streakMult);
-                score += comboPoints;
-                clearedLines += totalLines;
-                screenShakeTime = 12;
+                p.score += comboPoints;
+                p.clearedLines += totalLines;
+                p.screenShakeTime = 12;
 
                 SFX.playClear(totalLines);
-                const toastTitle = comboStreak >= 2 ? `${comboStreak}x STREAK!` : "COMBO CLEAR!";
-                showToast(toastTitle, `+${comboPoints} POINTS`);
+                if (gameMode !== 'versus') {
+                    const toastTitle = p.comboStreak >= 2 ? `${p.comboStreak}x STREAK!` : "COMBO CLEAR!";
+                    showToast(toastTitle, `+${comboPoints} POINTS`);
+                }
 
-                if (score > highscore) {
-                    highscore = score;
+                if (gameMode !== 'versus' && p.score > highscore) {
+                    highscore = p.score;
                     localStorage.setItem('block_puzzle_cyber_best', highscore.toString());
                 }
                 updateStatsUI();
@@ -773,23 +915,22 @@
             return totalLines;
         }
 
-        function triggerParticlesAtCell(c, r, color) {
-            const px = (c + 0.5) * blockSize;
-            const py = (r + 0.5) * blockSize;
+        function triggerParticlesAtCell(p, c, r, color) {
+            const px = (c + 0.5) * p.blockSize;
+            const py = (r + 0.5) * p.blockSize;
             for (let i = 0; i < 4; i++) {
-                particles.push(new Particle(px, py, color || '#fff'));
+                p.particles.push(new Particle(px, py, color || '#fff'));
             }
         }
 
-        // --- Loss Engine (Checks if any candidate can fit anywhere) ---
-        function checkMovesAvailable() {
+        function checkMovesAvailable(p) {
             for (let s = 0; s < 3; s++) {
-                const piece = dockCandidates[s];
+                const piece = p.dockCandidates[s];
                 if (piece) {
                     for (let r = 0; r <= gridRows - piece.matrix.length; r++) {
                         for (let c = 0; c <= gridCols - piece.matrix[0].length; c++) {
-                            if (canPlacePieceAt(piece.matrix, c, r)) {
-                                return true; 
+                            if (canPlacePieceAt(p, piece.matrix, c, r)) {
+                                return true;
                             }
                         }
                     }
@@ -798,23 +939,74 @@
             return false;
         }
 
-        function handleNoMovesLeft() {
+        function lockPlayer(p) {
+            if (p.isLocked) return;
+            p.isLocked = true;
+            const overlay = el(p, 'locked-overlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+            if (dragState.active && dragState.playerIndex === p.index) {
+                resetPickState();
+            }
+            checkVersusEnd();
+        }
+
+        function checkVersusEnd() {
+            if (gameMode !== 'versus' || versusFinished) return;
+            if (players[0].isLocked && players[1].isLocked) {
+                triggerVersusEnd();
+            }
+        }
+
+        function triggerVersusEnd() {
+            versusFinished = true;
+            isGameOver = true;
+            SFX.playGameOver();
+            const s0 = players[0].score;
+            const s1 = players[1].score;
+            let title, subtitle;
+            if (s0 > s1) {
+                title = "PLAYER 1 WINS!";
+                subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
+            } else if (s1 > s0) {
+                title = "PLAYER 2 WINS!";
+                subtitle = `P1: <strong class="text-neonCyan">${s0}</strong> vs P2: <strong class="text-neonMagenta">${s1}</strong>`;
+            } else {
+                title = "DRAW!";
+                subtitle = `Both players scored <strong class="text-neonCyan">${s0}</strong>`;
+            }
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-subtitle').innerHTML = subtitle;
+            document.getElementById('btn-modal-action').innerText = "RESTART BATTLE";
+            document.getElementById('btn-modal-zen-action').classList.add('hidden');
+            document.getElementById('btn-modal-versus-action').classList.add('hidden');
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        function handleNoMovesLeft(p) {
+            if (gameMode === 'versus') {
+                lockPlayer(p);
+                return;
+            }
             if (gameMode === 'arcade') {
                 triggerGameOver();
             } else {
                 saveSnapshot();
-                // Zen Healing Action: Clears the inner 6x6 squares to allow easy continuation
                 for (let r = 2; r < 8; r++) {
                     for (let c = 2; c < 8; c++) {
-                        if (grid[r][c]) {
-                            triggerParticlesAtCell(c, r, blockColors[grid[r][c]]);
-                            grid[r][c] = null;
+                        if (p.grid[r][c]) {
+                            triggerParticlesAtCell(p, c, r, blockColors[p.grid[r][c]]);
+                            p.grid[r][c] = null;
                         }
                     }
                 }
                 showToast("ZEN HEALING", "Board refreshed!");
                 SFX.playClear(3);
-                screenShakeTime = 10;
+                p.screenShakeTime = 10;
             }
         }
 
@@ -844,8 +1036,10 @@
 
         // --- Custom Restart Dialog Manager ---
         function showRestartConfirmation(targetMode = null) {
-            if (score === 0 && !isPaused && !isGameOver) {
-                // Safe to instantly restart or swap modes since no progress was made
+            const hasProgress = gameMode === 'versus'
+                ? (players[0].score > 0 || players[1].score > 0)
+                : (score > 0);
+            if (!hasProgress && !isPaused && !isGameOver && !versusFinished) {
                 startNewGame(targetMode || gameMode);
                 return;
             }
@@ -871,141 +1065,149 @@
             }
         }
 
-        // --- STREAMING_CHUNK: Building Canvas Rendering Routines ---
-        // --- RENDERING CANVAS SYSTEM ---
-        function drawBoardGrid() {
-            ctx.strokeStyle = '#181e2e';
-            ctx.lineWidth = 1;
-            for (let c = 0; c <= gridCols; c++) {
-                ctx.beginPath();
-                ctx.moveTo(c * blockSize, 0);
-                ctx.lineTo(c * blockSize, canvas.height);
-                ctx.stroke();
+        function drawBoardGrid(p) {
+            const c = p.ctx;
+            const bs = p.blockSize;
+            c.strokeStyle = '#181e2e';
+            c.lineWidth = 1;
+            for (let col = 0; col <= gridCols; col++) {
+                c.beginPath();
+                c.moveTo(col * bs, 0);
+                c.lineTo(col * bs, p.canvas.height);
+                c.stroke();
             }
-            for (let r = 0; r <= gridRows; r++) {
-                ctx.beginPath();
-                ctx.moveTo(0, r * blockSize);
-                ctx.lineTo(canvas.width, r * blockSize);
-                ctx.stroke();
+            for (let row = 0; row <= gridRows; row++) {
+                c.beginPath();
+                c.moveTo(0, row * bs);
+                c.lineTo(p.canvas.width, row * bs);
+                c.stroke();
             }
         }
 
-        function drawBoardBlock(c, r, color, isPreview = false) {
-            ctx.save();
+        function drawBoardBlock(p, col, row, color, isPreview = false) {
+            const c = p.ctx;
+            const bs = p.blockSize;
+            c.save();
             const realColor = blockColors[color] || '#fff';
-            
+
             if (isPreview) {
-                ctx.globalAlpha = 0.4;
-                ctx.fillStyle = realColor;
-                ctx.shadowBlur = 4;
-                ctx.shadowColor = realColor;
-                ctx.fillRect(c * blockSize + 2, r * blockSize + 2, blockSize - 4, blockSize - 4);
+                c.globalAlpha = 0.4;
+                c.fillStyle = realColor;
+                c.shadowBlur = 4;
+                c.shadowColor = realColor;
+                c.fillRect(col * bs + 2, row * bs + 2, bs - 4, bs - 4);
             } else {
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = realColor;
-                const grad = ctx.createLinearGradient(c * blockSize, r * blockSize, (c + 1) * blockSize, (r + 1) * blockSize);
+                c.shadowBlur = 8;
+                c.shadowColor = realColor;
+                const grad = c.createLinearGradient(col * bs, row * bs, (col + 1) * bs, (row + 1) * bs);
                 grad.addColorStop(0, realColor);
                 grad.addColorStop(1, '#000000');
-                ctx.fillStyle = grad;
-                ctx.fillRect(c * blockSize + 1, r * blockSize + 1, blockSize - 2, blockSize - 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.fillRect(c * blockSize + 2, r * blockSize + 2, blockSize - 4, 3);
+                c.fillStyle = grad;
+                c.fillRect(col * bs + 1, row * bs + 1, bs - 2, bs - 2);
+                c.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                c.fillRect(col * bs + 2, row * bs + 2, bs - 4, 3);
             }
-            ctx.restore();
+            c.restore();
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            if (screenShakeTime > 0) {
+        function drawPlayer(p) {
+            if (!p.ctx || !p.canvas) return;
+            const c = p.ctx;
+            c.clearRect(0, 0, p.canvas.width, p.canvas.height);
+            c.save();
+            if (p.screenShakeTime > 0) {
                 const dx = (Math.random() - 0.5) * 6;
                 const dy = (Math.random() - 0.5) * 6;
-                ctx.translate(dx, dy);
-                screenShakeTime--;
+                c.translate(dx, dy);
+                p.screenShakeTime--;
             }
 
-            drawBoardGrid();
+            drawBoardGrid(p);
 
-            // Render active board grid state
             for (let r = 0; r < gridRows; r++) {
-                for (let c = 0; c < gridCols; c++) {
-                    if (grid[r][c] !== null) {
-                        drawBoardBlock(c, r, grid[r][c]);
+                for (let col = 0; col < gridCols; col++) {
+                    if (p.grid[r][col] !== null) {
+                        drawBoardBlock(p, col, r, p.grid[r][col]);
                     }
                 }
             }
 
-            // Render floating block following mouse / touch
-            if (dragState.active) {
-                const piece = dockCandidates[dragState.slotIndex];
+            if (dragState.active && dragState.playerIndex === p.index) {
+                const piece = p.dockCandidates[dragState.slotIndex];
                 if (piece) {
-                    const rect = canvas.getBoundingClientRect();
-                    const localX = (dragState.currentX - rect.left) * (canvas.width / rect.width);
-                    const localY = (dragState.currentY - rect.top) * (canvas.height / rect.height);
-                    
+                    const rect = p.canvas.getBoundingClientRect();
+                    const localX = (dragState.currentX - rect.left) * (p.canvas.width / rect.width);
+                    const localY = (dragState.currentY - rect.top) * (p.canvas.height / rect.height);
+
                     let targetY = localY;
                     if (dragState.isTouch) {
-                        targetY -= 55; // Vertical offset so finger doesn't block the visual grid
+                        targetY -= 55;
                     }
 
                     const matrix = piece.matrix;
                     const mH = matrix.length;
                     const mW = matrix[0].length;
-                    
-                    const gCol = Math.round((localX / blockSize) - mW / 2);
-                    const gRow = Math.round((targetY / blockSize) - mH / 2);
 
-                    const canPlace = canPlacePieceAt(matrix, gCol, gRow);
+                    const gCol = Math.round((localX / p.blockSize) - mW / 2);
+                    const gRow = Math.round((targetY / p.blockSize) - mH / 2);
 
-                    // 1. Draw snap target ghost cells on main board
+                    const canPlace = canPlacePieceAt(p, matrix, gCol, gRow);
+
                     if (gCol >= 0 && gCol + mW <= gridCols && gRow >= 0 && gRow + mH <= gridRows) {
                         for (let r = 0; r < mH; r++) {
-                            for (let c = 0; c < mW; c++) {
-                                if (matrix[r][c] !== 0) {
-                                    drawBoardBlock(gCol + c, gRow + r, canPlace ? piece.color : 'pink', true);
+                            for (let col = 0; col < mW; col++) {
+                                if (matrix[r][col] !== 0) {
+                                    drawBoardBlock(p, gCol + col, gRow + r, canPlace ? piece.color : 'pink', true);
                                 }
                             }
                         }
                     }
 
-                    // 2. Render actual floating object
-                    ctx.save();
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = blockColors[piece.color];
-                    
+                    c.save();
+                    c.shadowBlur = 12;
+                    c.shadowColor = blockColors[piece.color];
+
                     const sizeMultiplier = 0.9;
-                    const scaledBlockSize = blockSize * sizeMultiplier;
+                    const scaledBlockSize = p.blockSize * sizeMultiplier;
                     const startX = localX - (mW * scaledBlockSize) / 2;
                     const startY = targetY - (mH * scaledBlockSize) / 2;
 
                     for (let r = 0; r < mH; r++) {
-                        for (let c = 0; c < mW; c++) {
-                            if (matrix[r][c] !== 0) {
-                                const bx = startX + c * scaledBlockSize;
+                        for (let col = 0; col < mW; col++) {
+                            if (matrix[r][col] !== 0) {
+                                const bx = startX + col * scaledBlockSize;
                                 const by = startY + r * scaledBlockSize;
                                 const realColor = blockColors[piece.color] || '#fff';
-                                const grad = ctx.createLinearGradient(bx, by, bx + scaledBlockSize, by + scaledBlockSize);
+                                const grad = c.createLinearGradient(bx, by, bx + scaledBlockSize, by + scaledBlockSize);
                                 grad.addColorStop(0, realColor);
                                 grad.addColorStop(1, '#000000');
-                                ctx.fillStyle = grad;
-                                ctx.fillRect(bx + 1, by + 1, scaledBlockSize - 2, scaledBlockSize - 2);
+                                c.fillStyle = grad;
+                                c.fillRect(bx + 1, by + 1, scaledBlockSize - 2, scaledBlockSize - 2);
                             }
                         }
                     }
-                    ctx.restore();
+                    c.restore();
                 }
             }
 
-            // Update and render explosions
-            for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update();
-                particles[i].draw(ctx);
-                if (particles[i].alpha <= 0) {
-                    particles.splice(i, 1);
+            for (let i = p.particles.length - 1; i >= 0; i--) {
+                p.particles[i].update();
+                p.particles[i].draw(c);
+                if (p.particles[i].alpha <= 0) {
+                    p.particles.splice(i, 1);
                 }
             }
 
-            ctx.restore();
+            c.restore();
+        }
+
+        function draw() {
+            if (gameMode === 'versus') {
+                drawPlayer(players[0]);
+                drawPlayer(players[1]);
+            } else {
+                drawPlayer(players[0]);
+            }
             requestAnimationFrame(draw);
         }
 
@@ -1047,84 +1249,94 @@
             sCtx.restore();
         }
 
-        // Render current shapes in dockslots
-        function drawDockCanvases() {
-            const size = window.innerWidth < 640 ? 12 : 16;
+        function drawDockCanvases(p) {
+            const size = p.dockCanvasSize;
             for (let i = 0; i < 3; i++) {
-                const c = document.getElementById(`dock-canvas-${i}`);
+                const c = el(p, `dock-canvas-${i}`);
                 if (!c) continue;
-                drawPieceOnCanvas(c, dockCandidates[i], size);
+                drawPieceOnCanvas(c, p.dockCandidates[i], size);
             }
         }
 
-        function drawNextWavePreview() {
+        function drawNextWavePreview(p) {
             const size = window.innerWidth < 640 ? 7 : 9;
             for (let i = 0; i < 3; i++) {
-                const c = document.getElementById(`next-canvas-${i}`);
+                const c = el(p, `next-canvas-${i}`);
                 if (!c) continue;
-                drawPieceOnCanvas(c, nextWave[i], size);
+                drawPieceOnCanvas(c, p.nextWave[i], size);
             }
         }
 
-        // --- Click-to-pick, mouse-follow, click-to-place ---
+        function dockCanvasId(p, idx) {
+            return p.prefix ? `${p.prefix}dock-canvas-${idx}` : `dock-canvas-${idx}`;
+        }
+
         function resetPickState() {
             if (dragState.slotIndex >= 0) {
-                const el = document.getElementById(`dock-canvas-${dragState.slotIndex}`);
-                if (el) el.style.opacity = '1';
+                const p = players[dragState.playerIndex];
+                const dockEl = document.getElementById(dockCanvasId(p, dragState.slotIndex));
+                if (dockEl) dockEl.style.opacity = '1';
+                if (p.canvas) p.canvas.style.cursor = '';
             }
             dragState.active = false;
             dragState.slotIndex = -1;
             dragState.pointerId = -1;
-            canvas.style.cursor = '';
         }
 
         function cancelPick() {
             if (!dragState.active) return;
+            const pIdx = dragState.playerIndex;
             if (gameMode === 'zen') moveHistory.pop();
             resetPickState();
-            drawDockCanvases();
-            drawNextWavePreview();
+            const p = players[pIdx];
+            drawDockCanvases(p);
+            if (gameMode !== 'versus') drawNextWavePreview(p);
             updateUndoButtonState();
         }
 
-        function pickPieceFromSlot(idx, clientX, clientY, isTouch = false) {
-            if (isGameOver || isPaused || !dockCandidates[idx]) return;
+        function pickPieceFromSlot(p, idx, clientX, clientY, isTouch = false) {
+            if (p.isLocked || isPaused || !p.dockCandidates[idx]) return;
+            if (gameMode !== 'versus' && isGameOver) return;
+            if (gameMode === 'versus' && versusFinished) return;
 
             SFX.init();
 
-            if (dragState.active && dragState.slotIndex !== idx) {
+            if (dragState.active && (dragState.playerIndex !== p.index || dragState.slotIndex !== idx)) {
                 if (gameMode === 'zen') moveHistory.pop();
-                const prevEl = document.getElementById(`dock-canvas-${dragState.slotIndex}`);
+                const prevP = players[dragState.playerIndex];
+                const prevEl = document.getElementById(dockCanvasId(prevP, dragState.slotIndex));
                 if (prevEl) prevEl.style.opacity = '1';
-            } else if (dragState.active && dragState.slotIndex === idx) {
+                if (prevP.canvas) prevP.canvas.style.cursor = '';
+            } else if (dragState.active && dragState.playerIndex === p.index && dragState.slotIndex === idx) {
                 return;
             }
 
             dragState.active = true;
+            dragState.playerIndex = p.index;
             dragState.slotIndex = idx;
             dragState.isTouch = isTouch;
             dragState.currentX = clientX;
             dragState.currentY = clientY;
 
-            document.getElementById(`dock-canvas-${idx}`).style.opacity = '0';
-            canvas.style.cursor = 'crosshair';
+            document.getElementById(dockCanvasId(p, idx)).style.opacity = '0';
+            if (p.canvas) p.canvas.style.cursor = 'crosshair';
             SFX.playGrab();
-            saveSnapshot();
+            if (gameMode === 'zen') saveSnapshot();
         }
 
-        function tryPlaceActivePiece(clientX, clientY) {
-            if (!dragState.active) return;
+        function tryPlaceActivePiece(p, clientX, clientY) {
+            if (!dragState.active || dragState.playerIndex !== p.index) return;
 
             const idx = dragState.slotIndex;
-            const piece = dockCandidates[idx];
+            const piece = p.dockCandidates[idx];
             if (!piece) {
                 resetPickState();
                 return;
             }
 
-            const rect = canvas.getBoundingClientRect();
-            const localX = (clientX - rect.left) * (canvas.width / rect.width);
-            const localY = (clientY - rect.top) * (canvas.height / rect.height);
+            const rect = p.canvas.getBoundingClientRect();
+            const localX = (clientX - rect.left) * (p.canvas.width / rect.width);
+            const localY = (clientY - rect.top) * (p.canvas.height / rect.height);
 
             let targetY = localY;
             if (dragState.isTouch) {
@@ -1134,64 +1346,74 @@
             const matrix = piece.matrix;
             const mH = matrix.length;
             const mW = matrix[0].length;
-            const gCol = Math.round((localX / blockSize) - mW / 2);
-            const gRow = Math.round((targetY / blockSize) - mH / 2);
+            const gCol = Math.round((localX / p.blockSize) - mW / 2);
+            const gRow = Math.round((targetY / p.blockSize) - mH / 2);
 
-            if (canPlacePieceAt(matrix, gCol, gRow)) {
-                placePieceAt(matrix, gCol, gRow, piece.color);
-                dockCandidates[idx] = null;
+            if (canPlacePieceAt(p, matrix, gCol, gRow)) {
+                placePieceAt(p, matrix, gCol, gRow, piece.color);
+                p.dockCandidates[idx] = null;
 
-                const linesCleared = evaluateBoard();
+                const linesCleared = evaluateBoard(p);
                 if (linesCleared === 0) {
-                    comboStreak = 0;
+                    p.comboStreak = 0;
                     updateStatsUI();
                 }
 
-                if (checkDockEmpty()) {
-                    promoteNextWave();
+                if (checkDockEmpty(p)) {
+                    promoteNextWave(p);
                 }
 
-                if (!checkMovesAvailable()) {
-                    handleNoMovesLeft();
+                if (!checkMovesAvailable(p)) {
+                    handleNoMovesLeft(p);
                 }
             } else if (gameMode === 'zen') {
                 moveHistory.pop();
             }
 
             resetPickState();
-            drawDockCanvases();
-            drawNextWavePreview();
+            drawDockCanvases(p);
+            if (gameMode !== 'versus') drawNextWavePreview(p);
             updateUndoButtonState();
         }
 
-        const slotsContainer = document.getElementById('dock-slots');
+        document.body.addEventListener('click', e => {
+            if (isPaused) return;
+            if (gameMode === 'versus' && versusFinished) return;
+            if (gameMode !== 'versus' && isGameOver) return;
 
-        slotsContainer.addEventListener('click', e => {
-            if (isGameOver || isPaused) return;
             if (e.target.closest('.btn-rotate-slot')) return;
 
             const slotEl = e.target.closest('.dock-slot');
-            if (!slotEl) return;
+            if (slotEl) {
+                const p = players[parseInt(slotEl.dataset.player) || 0];
+                if (p.isLocked) return;
+                const idx = parseInt(slotEl.dataset.slot);
+                if (isNaN(idx) || !p.dockCandidates[idx]) return;
+                pickPieceFromSlot(p, idx, e.clientX, e.clientY, e.pointerType === 'touch');
+                return;
+            }
 
-            const idx = parseInt(slotEl.dataset.slot);
-            if (isNaN(idx) || !dockCandidates[idx]) return;
-
-            pickPieceFromSlot(idx, e.clientX, e.clientY, e.pointerType === 'touch');
+            const boardCanvas = e.target.closest('#canvas-board, #p1-canvas-board, #p2-canvas-board');
+            if (boardCanvas && dragState.active) {
+                let p;
+                if (boardCanvas.id === 'canvas-board') p = players[0];
+                else if (boardCanvas.id === 'p1-canvas-board') p = players[0];
+                else if (boardCanvas.id === 'p2-canvas-board') p = players[1];
+                if (p && !p.isLocked) {
+                    dragState.currentX = e.clientX;
+                    dragState.currentY = e.clientY;
+                    tryPlaceActivePiece(p, e.clientX, e.clientY);
+                }
+            }
         });
 
         document.querySelectorAll('.btn-rotate-slot').forEach(btn => {
             btn.addEventListener('click', e => {
                 e.stopPropagation();
+                const p = players[parseInt(btn.dataset.player) || 0];
                 const idx = parseInt(btn.dataset.slot);
-                rotatePieceInSlot(idx);
+                rotatePieceInSlot(p, idx);
             });
-        });
-
-        canvas.addEventListener('click', e => {
-            if (!dragState.active || isGameOver || isPaused) return;
-            dragState.currentX = e.clientX;
-            dragState.currentY = e.clientY;
-            tryPlaceActivePiece(e.clientX, e.clientY);
         });
 
         window.addEventListener('mousemove', e => {
@@ -1222,59 +1444,114 @@
         }
 
         function updateStatsUI() {
-            document.getElementById('score-val').innerText = score.toString().padStart(6, '0');
-            document.getElementById('lines-val').innerText = clearedLines.toString().padStart(2, '0');
-            document.getElementById('streak-val').innerText = comboStreak.toString();
-            document.getElementById('highscore-val').innerText = highscore.toString().padStart(6, '0');
+            if (gameMode === 'versus') {
+                document.getElementById('p1-score-val').innerText = players[0].score.toString();
+                document.getElementById('p2-score-val').innerText = players[1].score.toString();
+            } else {
+                syncP0Aliases();
+                document.getElementById('score-val').innerText = score.toString().padStart(6, '0');
+                document.getElementById('lines-val').innerText = clearedLines.toString().padStart(2, '0');
+                document.getElementById('streak-val').innerText = comboStreak.toString();
+                document.getElementById('highscore-val').innerText = highscore.toString().padStart(6, '0');
+            }
         }
 
         function triggerGameOver() {
             isGameOver = true;
+            syncP0Aliases();
             SFX.playGameOver();
             document.getElementById('modal-title').innerText = "GAME OVER";
             document.getElementById('modal-subtitle').innerHTML = `No valid moves available!<br>Final Score: <strong class="text-neonCyan">${score}</strong>`;
             document.getElementById('btn-modal-action').innerText = "RESTART ARCADE";
-            
+            document.getElementById('btn-modal-zen-action').classList.remove('hidden');
+            document.getElementById('btn-modal-versus-action').classList.remove('hidden');
             const overlay = document.getElementById('modal-overlay');
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
         }
 
+        function resetPlayerState(p) {
+            p.grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
+            p.dockCandidates = [null, null, null];
+            p.nextWave = [null, null, null];
+            p.pieceBag = [];
+            p.comboStreak = 0;
+            p.score = 0;
+            p.clearedLines = 0;
+            p.isLocked = false;
+            p.particles = [];
+            p.screenShakeTime = 0;
+            const overlay = el(p, 'locked-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        function setModeButtonStyles() {
+            const modeArcadeBtn = document.getElementById('mode-arcade');
+            const modeZenBtn = document.getElementById('mode-zen');
+            const modeVersusBtn = document.getElementById('mode-versus');
+            const inactive = "px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all";
+            modeArcadeBtn.className = inactive;
+            modeZenBtn.className = inactive;
+            modeVersusBtn.className = inactive;
+            if (gameMode === 'arcade') {
+                modeArcadeBtn.className = "px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md";
+            } else if (gameMode === 'zen') {
+                modeZenBtn.className = "px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonCyan to-cyan-600 text-white font-bold transition-all shadow-md";
+            } else {
+                modeVersusBtn.className = "px-2 py-1 text-[9px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-neonCyan text-white font-bold transition-all shadow-md";
+            }
+        }
+
         function startNewGame(modeSelected = 'arcade') {
             gameMode = modeSelected;
-            grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(null));
-            score = 0;
-            clearedLines = 0;
-            comboStreak = 0;
+            versusFinished = false;
             isGameOver = false;
             isPaused = false;
             moveHistory = [];
             resetPickState();
 
-            // Reset pause icons/overlays
+            players.forEach(resetPlayerState);
+            rebindPlayers();
+
             document.getElementById('pause-overlay').classList.add('hidden');
             document.getElementById('pause-icon').setAttribute('data-lucide', 'pause');
 
             const zenPanel = document.getElementById('zen-panel');
-            const modeArcadeBtn = document.getElementById('mode-arcade');
-            const modeZenBtn = document.getElementById('mode-zen');
+            const singleLayout = document.getElementById('single-player-layout');
+            const versusLayout = document.getElementById('versus-layout');
 
-            if (gameMode === 'zen') {
-                zenPanel.classList.remove('opacity-30', 'pointer-events-none');
-                modeZenBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonCyan to-cyan-600 text-white font-bold transition-all shadow-md";
-                modeArcadeBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all";
-                SFX.startZenDrone();
-            } else {
+            if (gameMode === 'versus') {
+                singleLayout.classList.add('hidden');
+                versusLayout.classList.remove('hidden');
+                versusLayout.classList.add('flex');
                 zenPanel.classList.add('opacity-30', 'pointer-events-none');
-                modeArcadeBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md bg-gradient-to-r from-neonMagenta to-purple-600 text-white font-bold transition-all shadow-md";
-                modeZenBtn.className = "px-2.5 py-1 text-[10px] sm:text-xs font-cyber rounded-md text-slate-400 hover:text-white transition-all";
                 SFX.stopZenDrone();
+                players.forEach(p => initDockAndNextWave(p));
+            } else {
+                singleLayout.classList.remove('hidden');
+                versusLayout.classList.add('hidden');
+                versusLayout.classList.remove('flex');
+                if (gameMode === 'zen') {
+                    zenPanel.classList.remove('opacity-30', 'pointer-events-none');
+                    SFX.startZenDrone();
+                } else {
+                    zenPanel.classList.add('opacity-30', 'pointer-events-none');
+                    SFX.stopZenDrone();
+                }
+                initDockAndNextWave(players[0]);
             }
 
+            setModeButtonStyles();
             updateStatsUI();
-            initDockAndNextWave();
             updateUndoButtonState();
+            resizeCanvas();
 
+            document.getElementById('btn-modal-action').innerText = gameMode === 'versus' ? "RESTART BATTLE" : "RESTART ARCADE";
+            document.getElementById('btn-modal-zen-action').classList.remove('hidden');
+            document.getElementById('btn-modal-versus-action').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('hidden');
             lucide.createIcons();
             SFX.init();
@@ -1282,14 +1559,17 @@
 
         // --- BUTTON ACTION LISTENERS ---
         document.getElementById('btn-modal-action').addEventListener('click', () => {
-            startNewGame('arcade');
+            startNewGame(gameMode === 'versus' ? 'versus' : 'arcade');
         });
 
         document.getElementById('btn-modal-zen-action').addEventListener('click', () => {
             startNewGame('zen');
         });
 
-        // Mode switch triggers restart overlay instead of raw confirm prompt
+        document.getElementById('btn-modal-versus-action').addEventListener('click', () => {
+            startNewGame('versus');
+        });
+
         document.getElementById('mode-arcade').addEventListener('click', () => {
             if (gameMode !== 'arcade') {
                 showRestartConfirmation('arcade');
@@ -1299,6 +1579,12 @@
         document.getElementById('mode-zen').addEventListener('click', () => {
             if (gameMode !== 'zen') {
                 showRestartConfirmation('zen');
+            }
+        });
+
+        document.getElementById('mode-versus').addEventListener('click', () => {
+            if (gameMode !== 'versus') {
+                showRestartConfirmation('versus');
             }
         });
 
@@ -1347,7 +1633,9 @@
 
         // Keyboard: rotate while carrying, Escape to cancel
         window.addEventListener('keydown', event => {
-            if (isGameOver || isPaused) return;
+            if (isPaused) return;
+            if (gameMode === 'versus' && versusFinished) return;
+            if (gameMode !== 'versus' && isGameOver) return;
 
             if (event.key === 'Escape' && dragState.active) {
                 cancelPick();
@@ -1357,7 +1645,10 @@
 
             if (dragState.active) {
                 if (event.key === 'r' || event.key === 'R' || event.key === 'ArrowUp' || event.key === ' ') {
-                    rotatePieceInSlot(dragState.slotIndex);
+                    const p = players[dragState.playerIndex];
+                    if (!p.isLocked) {
+                        rotatePieceInSlot(p, dragState.slotIndex);
+                    }
                     event.preventDefault();
                 }
             }
@@ -1371,6 +1662,7 @@
 
         // Initialize icons, dimensions, and loops
         lucide.createIcons();
+        rebindPlayers();
         resizeCanvas();
         requestAnimationFrame(draw);
     </script>
