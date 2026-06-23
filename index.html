@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant" class="h-full">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -67,16 +67,16 @@
 
         <!-- Mode Select & Audio Options -->
         <div class="flex items-center gap-1.5 sm:gap-3">
-            <button id="btn-audio" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="音效切換">
+            <button id="btn-audio" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="Toggle sound">
                 <i data-lucide="volume-2" class="w-3.5 h-3.5" id="audio-icon"></i>
             </button>
-            <button id="btn-pause" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="暫停遊戲">
+            <button id="btn-pause" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonCyan flex items-center justify-center" title="Pause game">
                 <i data-lucide="pause" class="w-3.5 h-3.5" id="pause-icon"></i>
             </button>
-            <button id="btn-restart" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonMagenta flex items-center justify-center" title="重新開始">
+            <button id="btn-restart" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 hover:border-neonMagenta flex items-center justify-center" title="Restart game">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             </button>
-            <button id="btn-help" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 flex items-center justify-center" title="幫助說明">
+            <button id="btn-help" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700/50 flex items-center justify-center" title="Help">
                 <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
             </button>
             <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-800 shrink-0">
@@ -144,7 +144,7 @@
                         <i data-lucide="pause" class="w-6 h-6"></i>
                     </div>
                     <h3 class="font-cyber font-black text-neonCyan text-base sm:text-lg tracking-widest mb-1">GAME PAUSED</h3>
-                    <p class="text-[10px] text-slate-400 mb-5 text-center">暫時休息一下，隨時重返夜之城</p>
+                    <p class="text-[10px] text-slate-400 mb-5 text-center">Take a break — resume anytime.</p>
                     <button id="btn-resume" class="px-5 py-2 bg-gradient-to-r from-neonCyan to-neonPurple text-cyberBg font-cyber font-black text-xs rounded-xl shadow-neon-cyan transition-all active:scale-95">
                         RESUME GAME
                     </button>
@@ -156,13 +156,13 @@
                         <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
                     </div>
                     <h3 class="font-cyber font-black text-neonMagenta text-base sm:text-lg tracking-widest mb-1">RESTART GAME?</h3>
-                    <p class="text-[11px] text-slate-400 mb-5 max-w-[220px]">確定要重新開始嗎？<br>當前的得分與進度都將會遺失！</p>
+                    <p class="text-[11px] text-slate-400 mb-5 max-w-[220px]">Are you sure you want to restart?<br>Your current score and progress will be lost!</p>
                     <div class="flex gap-2 w-full max-w-[200px]">
                         <button id="btn-restart-confirm" class="flex-1 py-2 bg-neonMagenta hover:bg-pink-600 text-cyberBg font-cyber font-black text-[11px] rounded-xl transition-all active:scale-95">
-                            確認重來
+                            Confirm restart
                         </button>
                         <button id="btn-restart-cancel" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-cyber text-[11px] rounded-xl transition-all border border-slate-700 active:scale-95">
-                            取消返回
+                            Cancel
                         </button>
                     </div>
                 </div>
